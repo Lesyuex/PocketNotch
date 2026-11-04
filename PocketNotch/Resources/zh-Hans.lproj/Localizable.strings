@@ -27,6 +27,8 @@
 "settings.pane.weather.subtitle" = "天气指标显示";
 "settings.pane.stocks" = "股票行情";
 "settings.pane.stocks.subtitle" = "自选行情设置";
+"settings.stocks.developing" = "开发中";
+"settings.stocks.developing.description" = "股票功能正在开发中，暂不开放使用。";
 "settings.pane.lockScreen" = "锁屏音乐";
 "settings.pane.lockScreen.subtitle" = "音乐与背板效果";
 "settings.pane.agent" = "Agent状态";

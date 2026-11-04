@@ -28,9 +28,10 @@ public enum ExpandedIslandTab: String, Hashable, Sendable, CaseIterable {
 
     /// 展开页标签栏支持独立入口的标签，按默认顺序排列。
     /// 标签栏固定左侧为「此刻」，其后跟随本序列；当前保留
-    /// 应用程序 / 隔空传输 / Agent 会话 / 剪贴板 / 股票 五个入口。
+    /// 应用程序 / 隔空传输 / Agent 会话 / 剪贴板 四个入口。
+    /// 股票标签暂未上线，默认不纳入顺序，待功能就绪后再加入。
     public static let defaultOrder: [ExpandedIslandTab] = [
-        .applications, .transfer, .agentSessions, .clipboard, .stocks,
+        .applications, .transfer, .agentSessions, .clipboard,
     ]
 
     public var displayName: String {

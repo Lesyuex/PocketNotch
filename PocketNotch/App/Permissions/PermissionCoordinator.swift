@@ -204,13 +204,7 @@ final class PermissionCoordinator: NSObject, ObservableObject {
                 symbol: "cloud.sun",
                 isOn: weatherSettings.isWeatherMonitoringEnabled
             ),
-            Feature(
-                id: FeatureID.stock,
-                title: "实时股票",
-                subtitle: "显示自选股票名称与实时涨跌幅",
-                symbol: "chart.line.uptrend.xyaxis",
-                isOn: stockSettings.isPersistent
-            ),
+
 
         ]
     }

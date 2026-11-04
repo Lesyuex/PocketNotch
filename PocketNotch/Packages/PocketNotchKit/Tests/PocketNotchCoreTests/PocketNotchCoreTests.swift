@@ -1013,9 +1013,11 @@ final class ExpandedTabSettingsTests: XCTestCase {
         )
 
         let settings = ExpandedTabSettings(defaults: defaults)
+        // .stocks 已从 defaultOrder 移除（功能开发中），managedTabs 不再收录它；
+        // .home 不在 defaultOrder，同样被过滤掉。
         XCTAssertEqual(
             settings.managedTabs,
-            [.home, .stocks, .applications, .transfer, .agentSessions, .clipboard]
+            [.applications, .transfer, .agentSessions, .clipboard]
         )
     }
 }

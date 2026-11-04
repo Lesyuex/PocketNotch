@@ -27,6 +27,8 @@
 "settings.pane.weather.subtitle" = "Weather metrics";
 "settings.pane.stocks" = "Stocks";
 "settings.pane.stocks.subtitle" = "Watchlist preferences";
+"settings.stocks.developing" = "Developing";
+"settings.stocks.developing.description" = "Stock feature is under development and not yet available.";
 "settings.pane.lockScreen" = "Lock Screen Music";
 "settings.pane.lockScreen.subtitle" = "Player and backdrop effects";
 "settings.pane.agent" = "AI Activity";

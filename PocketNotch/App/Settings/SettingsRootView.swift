@@ -134,7 +134,10 @@ struct SettingsRootView: View {
         }
 
         var badge: String? {
-            nil
+            switch self {
+            case .stocks: NSLocalizedString("settings.stocks.developing", comment: "")
+            default: nil
+            }
         }
     }
 
@@ -343,15 +346,7 @@ struct SettingsRootView: View {
                     wallpaperImage: wallpaperPreview.image
                 )
             case .stocks:
-                CompactContentSettingsView(
-                    feature: .stocks,
-                    appearanceSettings: appearanceSettings,
-                    stockSettings: stockSettings,
-                    monitoringSettings: monitoringSettings,
-                    weatherSettings: weatherSettings,
-                    registry: registry,
-                    wallpaperImage: wallpaperPreview.image
-                )
+                StockDevelopmentPlaceholderView()
             case .lockScreen:
                 LockScreenMusicSettingsView(
                     settings: monitoringSettings,
@@ -441,6 +436,26 @@ private struct AgentDevelopmentPlaceholderView: View {
                 .foregroundStyle(.primary)
 
             Text("settings.agent.developing.description")
+                .font(.system(size: 12))
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+private struct StockDevelopmentPlaceholderView: View {
+    var body: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "hammer.fill")
+                .font(.system(size: 36, weight: .light))
+                .foregroundStyle(.secondary)
+
+            Text("settings.stocks.developing")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(.primary)
+
+            Text("settings.stocks.developing.description")
                 .font(.system(size: 12))
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)

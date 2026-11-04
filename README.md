@@ -1,5 +1,7 @@
 # PocketNotch
 
+PocketNotch is a lightweight macOS utility that transforms your Mac’s notch into an interactive space for system monitoring, music visualization, and everyday tools.
+
 **让 Mac 刘海成为一个轻巧、实用的交互空间。** PocketNotch 是一款 macOS 菜单栏应用，将动态岛式交互带到 Mac 屏幕顶部，并整合媒体播放、系统状态和日常工具。
 
 ## 功能
@@ -21,7 +23,7 @@
 
 从 [GitHub Releases](https://github.com/Lesyuex/PocketNotch/releases/latest) 下载最新 `.dmg`，打开后将 PocketNotch 拖到“应用程序”文件夹。
 
-目前发布包没有 Developer ID 签名和 Apple 公证。首次打开时，macOS 可能提示无法验证开发者；请只在确认下载来源可信后，通过“系统设置 → 隐私与安全性”允许打开。
+目前发布包只有 ad-hoc 签名，没有 Developer ID 签名和 Apple 公证。首次打开时，macOS 可能提示无法验证开发者；请只在确认下载来源可信后，通过“系统设置 → 隐私与安全性”允许打开。
 
 ## 从源码构建
 
