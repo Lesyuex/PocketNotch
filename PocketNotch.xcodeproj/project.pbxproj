@@ -1,0 +1,660 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 70;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		F13E42E7302AE5E4001F86BD /* DefaultPets in Resources */ = {isa = PBXBuildFile; fileRef = F13E42E6302AE5E4001F86BD /* DefaultPets */; };
+		F1A000012FFBFA9A0071F42B /* PocketNotchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A000102FFBFA9A0071F42B /* PocketNotchApp.swift */; };
+		F1A000022FFBFA9A0071F42B /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A000112FFBFA9A0071F42B /* AppDelegate.swift */; };
+		F1A000032FFBFA9A0071F42B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F1A000202FFBFA9A0071F42B /* Assets.xcassets */; };
+		F1A000042FFBFA9A0071F42B /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = F1A000232FFBFA9A0071F42B /* Localizable.strings */; };
+		F1A000052FFBFA9A0071F42B /* PocketNotchCore in Frameworks */ = {isa = PBXBuildFile; productRef = F1A000402FFBFA9A0071F42B /* PocketNotchCore */; };
+		F1A000062FFBFA9A0071F42B /* MediaModule in Frameworks */ = {isa = PBXBuildFile; productRef = F1A000412FFBFA9A0071F42B /* MediaModule */; };
+		F1A000072FFBFA9A0071F42B /* ShelfModule in Frameworks */ = {isa = PBXBuildFile; productRef = F1A000422FFBFA9A0071F42B /* ShelfModule */; };
+		F1A000082FFBFA9A0071F42B /* SystemStatsModule in Frameworks */ = {isa = PBXBuildFile; productRef = F1A000432FFBFA9A0071F42B /* SystemStatsModule */; };
+		F1A000092FFBFA9A0071F42B /* SettingsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A000142FFBFA9A0071F42B /* SettingsWindowController.swift */; };
+		F1A0000A2FFBFA9A0071F42B /* WeatherModule in Frameworks */ = {isa = PBXBuildFile; productRef = F1A000452FFBFA9A0071F42B /* WeatherModule */; };
+		F1A0000B2FFBFA9A0071F42B /* StockModule in Frameworks */ = {isa = PBXBuildFile; productRef = F1A000462FFBFA9A0071F42B /* StockModule */; };
+		F1A0000C2FFBFA9A0071F42B /* AgentEventModule in Frameworks */ = {isa = PBXBuildFile; productRef = F1A000472FFBFA9A0071F42B /* AgentEventModule */; };
+		F1A0000D2FFBFA9A0071F42B /* ApplicationsModule in Frameworks */ = {isa = PBXBuildFile; productRef = F1A000482FFBFA9A0071F42B /* ApplicationsModule */; };
+		F1A0000E2FFBFA9A0071F42B /* AgentSessionsModule in Frameworks */ = {isa = PBXBuildFile; productRef = F1A000492FFBFA9A0071F42B /* AgentSessionsModule */; };
+		F1A0000F2FFBFA9A0071F42B /* RecentFoldersModule in Frameworks */ = {isa = PBXBuildFile; productRef = F1A0004A2FFBFA9A0071F42B /* RecentFoldersModule */; };
+		F1A0004C2FFBFA9A0071F42B /* TodoModule in Frameworks */ = {isa = PBXBuildFile; productRef = F1A0004B2FFBFA9A0071F42B /* TodoModule */; };
+		F1A0004D2FFBFA9A0071F42B /* BrightnessModule in Frameworks */ = {isa = PBXBuildFile; productRef = F1A0004E2FFBFA9A0071F42B /* BrightnessModule */; };
+		F1A0005B2FFBFA9A0071F42B /* ClipboardModule in Frameworks */ = {isa = PBXBuildFile; productRef = F1A0005A2FFBFA9A0071F42B /* ClipboardModule */; };
+		F1A0005C2FFBFA9A0071F42B /* TimerModule in Frameworks */ = {isa = PBXBuildFile; productRef = F1A0005D2FFBFA9A0071F42B /* TimerModule */; };
+		F1A000D02FFBFA9A0071F42B /* PermissionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A000D32FFBFA9A0071F42B /* PermissionCoordinator.swift */; };
+		F1A000D12FFBFA9A0071F42B /* AgentSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A000D42FFBFA9A0071F42B /* AgentSelectionView.swift */; };
+		F1A000E22FFBFA9A0071F42B /* LaunchPermissionCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A000E32FFBFA9A0071F42B /* LaunchPermissionCardView.swift */; };
+		F1A000E42FFBFA9A0071F42B /* LaunchPermissionCardWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A000E52FFBFA9A0071F42B /* LaunchPermissionCardWindowController.swift */; };
+		F1A000F20000000000000011 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A000F10000000000000011 /* AppSettings.swift */; };
+		F1A000F20000000000000012 /* PermissionSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A000F10000000000000012 /* PermissionSettingsView.swift */; };
+		F1A000F20000000000000013 /* SettingsWallpaperPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A000F10000000000000013 /* SettingsWallpaperPreview.swift */; };
+		F1A000F20000000000000014 /* SettingsComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A000F10000000000000014 /* SettingsComponents.swift */; };
+		F1A000F20000000000000015 /* SettingsRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A000F10000000000000015 /* SettingsRootView.swift */; };
+		F1A000F20000000000000016 /* GeneralSettingsViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A000F10000000000000016 /* GeneralSettingsViews.swift */; };
+		F1A000F2000000000000001F /* SystemVersionSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A000F1000000000000001F /* SystemVersionSettingsView.swift */; };
+		F1A000F20000000000000017 /* IslandInteractionSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A000F10000000000000017 /* IslandInteractionSettingsView.swift */; };
+		F1A000F20000000000000018 /* IslandAppearanceSettingsViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A000F10000000000000018 /* IslandAppearanceSettingsViews.swift */; };
+		F1A000F20000000000000019 /* NotificationSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A000F10000000000000019 /* NotificationSettingsView.swift */; };
+		F1A000F2000000000000001A /* MediaSettingsViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A000F1000000000000001A /* MediaSettingsViews.swift */; };
+		F1A000F2000000000000001B /* CompactContentSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A000F1000000000000001B /* CompactContentSettingsView.swift */; };
+		F1A000F2000000000000001C /* StockSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A000F1000000000000001C /* StockSettingsView.swift */; };
+		F1A000F2000000000000001D /* WeatherSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A000F1000000000000001D /* WeatherSettingsView.swift */; };
+		F1A000F2000000000000001E /* AgentActivitySettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A000F1000000000000001E /* AgentActivitySettingsView.swift */; };
+		F1A000F20000000000000022 /* SystemVolumeObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A000F10000000000000022 /* SystemVolumeObserver.swift */; };
+		F1A000F20000000000000023 /* VolumeHUDController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A000F10000000000000023 /* VolumeHUDController.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		F13E42E6302AE5E4001F86BD /* DefaultPets */ = {isa = PBXFileReference; lastKnownFileType = folder; path = DefaultPets; sourceTree = "<group>"; };
+		F1A000102FFBFA9A0071F42B /* PocketNotchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PocketNotchApp.swift; sourceTree = "<group>"; };
+		F1A000112FFBFA9A0071F42B /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		F1A000122FFBFA9A0071F42B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		F1A000132FFBFA9A0071F42B /* PocketNotch.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PocketNotch.entitlements; sourceTree = "<group>"; };
+		F1A000142FFBFA9A0071F42B /* SettingsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWindowController.swift; sourceTree = "<group>"; };
+		F1A000202FFBFA9A0071F42B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		F1A000212FFBFA9A0071F42B /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		F1A000222FFBFA9A0071F42B /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		F1A000302FFBFA9A0071F42B /* PocketNotch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PocketNotch.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F1A000D32FFBFA9A0071F42B /* PermissionCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionCoordinator.swift; sourceTree = "<group>"; };
+		F1A000D42FFBFA9A0071F42B /* AgentSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentSelectionView.swift; sourceTree = "<group>"; };
+		F1A000E32FFBFA9A0071F42B /* LaunchPermissionCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchPermissionCardView.swift; sourceTree = "<group>"; };
+		F1A000E52FFBFA9A0071F42B /* LaunchPermissionCardWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchPermissionCardWindowController.swift; sourceTree = "<group>"; };
+		F1A000F10000000000000011 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
+		F1A000F10000000000000012 /* PermissionSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionSettingsView.swift; sourceTree = "<group>"; };
+		F1A000F10000000000000013 /* SettingsWallpaperPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWallpaperPreview.swift; sourceTree = "<group>"; };
+		F1A000F10000000000000014 /* SettingsComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsComponents.swift; sourceTree = "<group>"; };
+		F1A000F10000000000000015 /* SettingsRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsRootView.swift; sourceTree = "<group>"; };
+		F1A000F10000000000000016 /* GeneralSettingsViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneralSettingsViews.swift; sourceTree = "<group>"; };
+		F1A000F1000000000000001F /* SystemVersionSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemVersionSettingsView.swift; sourceTree = "<group>"; };
+		F1A000F10000000000000017 /* IslandInteractionSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IslandInteractionSettingsView.swift; sourceTree = "<group>"; };
+		F1A000F10000000000000018 /* IslandAppearanceSettingsViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IslandAppearanceSettingsViews.swift; sourceTree = "<group>"; };
+		F1A000F10000000000000019 /* NotificationSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationSettingsView.swift; sourceTree = "<group>"; };
+		F1A000F1000000000000001A /* MediaSettingsViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaSettingsViews.swift; sourceTree = "<group>"; };
+		F1A000F1000000000000001B /* CompactContentSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompactContentSettingsView.swift; sourceTree = "<group>"; };
+		F1A000F1000000000000001C /* StockSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StockSettingsView.swift; sourceTree = "<group>"; };
+		F1A000F1000000000000001D /* WeatherSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherSettingsView.swift; sourceTree = "<group>"; };
+		F1A000F1000000000000001E /* AgentActivitySettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentActivitySettingsView.swift; sourceTree = "<group>"; };
+		F1A000F10000000000000022 /* SystemVolumeObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemVolumeObserver.swift; sourceTree = "<group>"; };
+		F1A000F10000000000000023 /* VolumeHUDController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeHUDController.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		F13E42F6302B2FF9001F86BD /* DefaultAgentState */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = DefaultAgentState; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		F1A000502FFBFA9A0071F42B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F1A000052FFBFA9A0071F42B /* PocketNotchCore in Frameworks */,
+				F1A000062FFBFA9A0071F42B /* MediaModule in Frameworks */,
+				F1A000072FFBFA9A0071F42B /* ShelfModule in Frameworks */,
+				F1A000082FFBFA9A0071F42B /* SystemStatsModule in Frameworks */,
+				F1A0000A2FFBFA9A0071F42B /* WeatherModule in Frameworks */,
+				F1A0000B2FFBFA9A0071F42B /* StockModule in Frameworks */,
+				F1A0000C2FFBFA9A0071F42B /* AgentEventModule in Frameworks */,
+				F1A0000D2FFBFA9A0071F42B /* ApplicationsModule in Frameworks */,
+				F1A0000E2FFBFA9A0071F42B /* AgentSessionsModule in Frameworks */,
+				F1A0000F2FFBFA9A0071F42B /* RecentFoldersModule in Frameworks */,
+				F1A0004C2FFBFA9A0071F42B /* TodoModule in Frameworks */,
+				F1A0004D2FFBFA9A0071F42B /* BrightnessModule in Frameworks */,
+				F1A0005B2FFBFA9A0071F42B /* ClipboardModule in Frameworks */,
+				F1A0005C2FFBFA9A0071F42B /* TimerModule in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		F1A000602FFBFA9A0071F42B = {
+			isa = PBXGroup;
+			children = (
+				F1A000612FFBFA9A0071F42B /* PocketNotch */,
+				F1A000682FFBFA9A0071F42B /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		F1A000612FFBFA9A0071F42B /* PocketNotch */ = {
+			isa = PBXGroup;
+			children = (
+				F1A000622FFBFA9A0071F42B /* App */,
+				F1A000632FFBFA9A0071F42B /* Resources */,
+				F1A000642FFBFA9A0071F42B /* Packages */,
+				F1A000652FFBFA9A0071F42B /* docs */,
+				F1A000662FFBFA9A0071F42B /* scripts */,
+			);
+			path = PocketNotch;
+			sourceTree = "<group>";
+		};
+		F1A000622FFBFA9A0071F42B /* App */ = {
+			isa = PBXGroup;
+			children = (
+				F1A000102FFBFA9A0071F42B /* PocketNotchApp.swift */,
+				F1A000112FFBFA9A0071F42B /* AppDelegate.swift */,
+				F1A000F30000000000000001 /* Settings */,
+				F1A000F30000000000000021 /* VolumeHUD */,
+				F1A000D62FFBFA9A0071F42B /* Permissions */,
+				F1A000122FFBFA9A0071F42B /* Info.plist */,
+				F1A000132FFBFA9A0071F42B /* PocketNotch.entitlements */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		F1A000632FFBFA9A0071F42B /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				F13E42F6302B2FF9001F86BD /* DefaultAgentState */,
+				F13E42E6302AE5E4001F86BD /* DefaultPets */,
+				F1A000202FFBFA9A0071F42B /* Assets.xcassets */,
+				F1A000232FFBFA9A0071F42B /* Localizable.strings */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		F1A000642FFBFA9A0071F42B /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Packages;
+			sourceTree = "<group>";
+		};
+		F1A000652FFBFA9A0071F42B /* docs */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = docs;
+			sourceTree = "<group>";
+		};
+		F1A000662FFBFA9A0071F42B /* scripts */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = scripts;
+			sourceTree = "<group>";
+		};
+		F1A000682FFBFA9A0071F42B /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				F1A000302FFBFA9A0071F42B /* PocketNotch.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		F1A000D62FFBFA9A0071F42B /* Permissions */ = {
+			isa = PBXGroup;
+			children = (
+				F1A000D32FFBFA9A0071F42B /* PermissionCoordinator.swift */,
+				F1A000D42FFBFA9A0071F42B /* AgentSelectionView.swift */,
+				F1A000E32FFBFA9A0071F42B /* LaunchPermissionCardView.swift */,
+				F1A000E52FFBFA9A0071F42B /* LaunchPermissionCardWindowController.swift */,
+			);
+			path = Permissions;
+			sourceTree = "<group>";
+		};
+		F1A000F30000000000000001 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				F1A000F10000000000000011 /* AppSettings.swift */,
+				F1A000F10000000000000012 /* PermissionSettingsView.swift */,
+				F1A000F10000000000000013 /* SettingsWallpaperPreview.swift */,
+				F1A000F10000000000000014 /* SettingsComponents.swift */,
+				F1A000142FFBFA9A0071F42B /* SettingsWindowController.swift */,
+				F1A000F10000000000000015 /* SettingsRootView.swift */,
+				F1A000F10000000000000016 /* GeneralSettingsViews.swift */,
+				F1A000F1000000000000001F /* SystemVersionSettingsView.swift */,
+				F1A000F10000000000000017 /* IslandInteractionSettingsView.swift */,
+				F1A000F10000000000000018 /* IslandAppearanceSettingsViews.swift */,
+				F1A000F10000000000000019 /* NotificationSettingsView.swift */,
+				F1A000F1000000000000001A /* MediaSettingsViews.swift */,
+				F1A000F1000000000000001B /* CompactContentSettingsView.swift */,
+				F1A000F1000000000000001C /* StockSettingsView.swift */,
+				F1A000F1000000000000001D /* WeatherSettingsView.swift */,
+				F1A000F1000000000000001E /* AgentActivitySettingsView.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		F1A000F30000000000000021 /* VolumeHUD */ = {
+			isa = PBXGroup;
+			children = (
+				F1A000F10000000000000022 /* SystemVolumeObserver.swift */,
+				F1A000F10000000000000023 /* VolumeHUDController.swift */,
+			);
+			path = VolumeHUD;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		F1A000702FFBFA9A0071F42B /* PocketNotch */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F1A000902FFBFA9A0071F42B /* Build configuration list for PBXNativeTarget "PocketNotch" */;
+			buildPhases = (
+				F1A000802FFBFA9A0071F42B /* Sources */,
+				F1A000502FFBFA9A0071F42B /* Frameworks */,
+				F1A000812FFBFA9A0071F42B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				F13E42F6302B2FF9001F86BD /* DefaultAgentState */,
+			);
+			name = PocketNotch;
+			packageProductDependencies = (
+				F1A000402FFBFA9A0071F42B /* PocketNotchCore */,
+				F1A000412FFBFA9A0071F42B /* MediaModule */,
+				F1A000422FFBFA9A0071F42B /* ShelfModule */,
+				F1A000432FFBFA9A0071F42B /* SystemStatsModule */,
+				F1A000452FFBFA9A0071F42B /* WeatherModule */,
+				F1A000462FFBFA9A0071F42B /* StockModule */,
+				F1A000472FFBFA9A0071F42B /* AgentEventModule */,
+				F1A000482FFBFA9A0071F42B /* ApplicationsModule */,
+				F1A000492FFBFA9A0071F42B /* AgentSessionsModule */,
+				F1A0004A2FFBFA9A0071F42B /* RecentFoldersModule */,
+				F1A0004B2FFBFA9A0071F42B /* TodoModule */,
+				F1A0004E2FFBFA9A0071F42B /* BrightnessModule */,
+				F1A0005A2FFBFA9A0071F42B /* ClipboardModule */,
+				F1A0005D2FFBFA9A0071F42B /* TimerModule */,
+			);
+			productName = PocketNotch;
+			productReference = F1A000302FFBFA9A0071F42B /* PocketNotch.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		F1A000722FFBFA9A0071F42B /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 2700;
+				TargetAttributes = {
+					F1A000702FFBFA9A0071F42B = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = F1A000922FFBFA9A0071F42B /* Build configuration list for PBXProject "PocketNotch" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+				"zh-Hans",
+			);
+			mainGroup = F1A000602FFBFA9A0071F42B;
+			packageReferences = (
+				F1A000442FFBFA9A0071F42B /* XCLocalSwiftPackageReference "PocketNotch/Packages/PocketNotchKit" */,
+			);
+			productRefGroup = F1A000682FFBFA9A0071F42B /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				F1A000702FFBFA9A0071F42B /* PocketNotch */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		F1A000812FFBFA9A0071F42B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F1A000032FFBFA9A0071F42B /* Assets.xcassets in Resources */,
+				F13E42E7302AE5E4001F86BD /* DefaultPets in Resources */,
+				F1A000042FFBFA9A0071F42B /* Localizable.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		F1A000802FFBFA9A0071F42B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F1A000012FFBFA9A0071F42B /* PocketNotchApp.swift in Sources */,
+				F1A000022FFBFA9A0071F42B /* AppDelegate.swift in Sources */,
+				F1A000092FFBFA9A0071F42B /* SettingsWindowController.swift in Sources */,
+				F1A000D02FFBFA9A0071F42B /* PermissionCoordinator.swift in Sources */,
+				F1A000D12FFBFA9A0071F42B /* AgentSelectionView.swift in Sources */,
+				F1A000E22FFBFA9A0071F42B /* LaunchPermissionCardView.swift in Sources */,
+				F1A000F20000000000000022 /* SystemVolumeObserver.swift in Sources */,
+				F1A000F20000000000000023 /* VolumeHUDController.swift in Sources */,
+				F1A000E42FFBFA9A0071F42B /* LaunchPermissionCardWindowController.swift in Sources */,
+				F1A000F20000000000000011 /* AppSettings.swift in Sources */,
+				F1A000F20000000000000012 /* PermissionSettingsView.swift in Sources */,
+				F1A000F20000000000000013 /* SettingsWallpaperPreview.swift in Sources */,
+				F1A000F20000000000000014 /* SettingsComponents.swift in Sources */,
+				F1A000F20000000000000015 /* SettingsRootView.swift in Sources */,
+				F1A000F20000000000000016 /* GeneralSettingsViews.swift in Sources */,
+				F1A000F2000000000000001F /* SystemVersionSettingsView.swift in Sources */,
+				F1A000F20000000000000017 /* IslandInteractionSettingsView.swift in Sources */,
+				F1A000F20000000000000018 /* IslandAppearanceSettingsViews.swift in Sources */,
+				F1A000F20000000000000019 /* NotificationSettingsView.swift in Sources */,
+				F1A000F2000000000000001A /* MediaSettingsViews.swift in Sources */,
+				F1A000F2000000000000001B /* CompactContentSettingsView.swift in Sources */,
+				F1A000F2000000000000001C /* StockSettingsView.swift in Sources */,
+				F1A000F2000000000000001D /* WeatherSettingsView.swift in Sources */,
+				F1A000F2000000000000001E /* AgentActivitySettingsView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		F1A000232FFBFA9A0071F42B /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				F1A000212FFBFA9A0071F42B /* en */,
+				F1A000222FFBFA9A0071F42B /* zh-Hans */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		F1A000A02FFBFA9A0071F42B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		F1A000A12FFBFA9A0071F42B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+			};
+			name = Release;
+		};
+		F1A000A22FFBFA9A0071F42B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = PocketNotch/App/PocketNotch.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_ASSET_PATHS = "";
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = PocketNotch/App/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.pocketnotch.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		F1A000A32FFBFA9A0071F42B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = PocketNotch/App/PocketNotch.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_ASSET_PATHS = "";
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = PocketNotch/App/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.pocketnotch.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		F1A000902FFBFA9A0071F42B /* Build configuration list for PBXNativeTarget "PocketNotch" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F1A000A22FFBFA9A0071F42B /* Debug */,
+				F1A000A32FFBFA9A0071F42B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F1A000922FFBFA9A0071F42B /* Build configuration list for PBXProject "PocketNotch" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F1A000A02FFBFA9A0071F42B /* Debug */,
+				F1A000A12FFBFA9A0071F42B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		F1A000442FFBFA9A0071F42B /* XCLocalSwiftPackageReference "PocketNotch/Packages/PocketNotchKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = PocketNotch/Packages/PocketNotchKit;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		F1A000402FFBFA9A0071F42B /* PocketNotchCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F1A000442FFBFA9A0071F42B /* XCLocalSwiftPackageReference "PocketNotch/Packages/PocketNotchKit" */;
+			productName = PocketNotchCore;
+		};
+		F1A000412FFBFA9A0071F42B /* MediaModule */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F1A000442FFBFA9A0071F42B /* XCLocalSwiftPackageReference "PocketNotch/Packages/PocketNotchKit" */;
+			productName = MediaModule;
+		};
+		F1A000422FFBFA9A0071F42B /* ShelfModule */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F1A000442FFBFA9A0071F42B /* XCLocalSwiftPackageReference "PocketNotch/Packages/PocketNotchKit" */;
+			productName = ShelfModule;
+		};
+		F1A000432FFBFA9A0071F42B /* SystemStatsModule */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F1A000442FFBFA9A0071F42B /* XCLocalSwiftPackageReference "PocketNotch/Packages/PocketNotchKit" */;
+			productName = SystemStatsModule;
+		};
+		F1A000452FFBFA9A0071F42B /* WeatherModule */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F1A000442FFBFA9A0071F42B /* XCLocalSwiftPackageReference "PocketNotch/Packages/PocketNotchKit" */;
+			productName = WeatherModule;
+		};
+		F1A000462FFBFA9A0071F42B /* StockModule */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F1A000442FFBFA9A0071F42B /* XCLocalSwiftPackageReference "PocketNotch/Packages/PocketNotchKit" */;
+			productName = StockModule;
+		};
+		F1A000472FFBFA9A0071F42B /* AgentEventModule */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F1A000442FFBFA9A0071F42B /* XCLocalSwiftPackageReference "PocketNotch/Packages/PocketNotchKit" */;
+			productName = AgentEventModule;
+		};
+		F1A000482FFBFA9A0071F42B /* ApplicationsModule */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F1A000442FFBFA9A0071F42B /* XCLocalSwiftPackageReference "PocketNotch/Packages/PocketNotchKit" */;
+			productName = ApplicationsModule;
+		};
+		F1A000492FFBFA9A0071F42B /* AgentSessionsModule */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F1A000442FFBFA9A0071F42B /* XCLocalSwiftPackageReference "PocketNotch/Packages/PocketNotchKit" */;
+			productName = AgentSessionsModule;
+		};
+		F1A0004A2FFBFA9A0071F42B /* RecentFoldersModule */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F1A000442FFBFA9A0071F42B /* XCLocalSwiftPackageReference "PocketNotch/Packages/PocketNotchKit" */;
+			productName = RecentFoldersModule;
+		};
+		F1A0004B2FFBFA9A0071F42B /* TodoModule */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F1A000442FFBFA9A0071F42B /* XCLocalSwiftPackageReference "PocketNotch/Packages/PocketNotchKit" */;
+			productName = TodoModule;
+		};
+		F1A0005A2FFBFA9A0071F42B /* ClipboardModule */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F1A000442FFBFA9A0071F42B /* XCLocalSwiftPackageReference "PocketNotch/Packages/PocketNotchKit" */;
+			productName = ClipboardModule;
+		};
+		F1A0005D2FFBFA9A0071F42B /* TimerModule */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F1A000442FFBFA9A0071F42B /* XCLocalSwiftPackageReference "PocketNotch/Packages/PocketNotchKit" */;
+			productName = TimerModule;
+		};
+		F1A0004E2FFBFA9A0071F42B /* BrightnessModule */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F1A000442FFBFA9A0071F42B /* XCLocalSwiftPackageReference "PocketNotch/Packages/PocketNotchKit" */;
+			productName = BrightnessModule;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = F1A000722FFBFA9A0071F42B /* Project object */;
+}

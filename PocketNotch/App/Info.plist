@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>PocketNotch</string>
+	<key>CFBundleDisplayName</key>
+	<string>Pocket Notch</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(MARKETING_VERSION)</string>
+	<key>CFBundleVersion</key>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
+	<key>LSUIElement</key>
+	<true/>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>Pocket Notch needs permission to read and control the current track in Music or Spotify when system media metadata is unavailable.</string>
+	<key>NSAudioCaptureUsageDescription</key>
+	<string>Pocket Notch captures system audio only while music is playing to render the notch spectrum visualizer. Audio is analyzed on-device and never recorded, stored, or transmitted.</string>
+	<key>NSScreenCaptureUsageDescription</key>
+	<string>Pocket Notch captures the wallpaper behind the lock-screen music widget to render its Glass and Clear refraction effects. Captured pixels are processed locally and never recorded, stored, or transmitted.</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Pocket Notch detects Bluetooth accessory connections to show the device icon and battery status beside the notch.</string>
+	<key>NSLocationUsageDescription</key>
+	<string>Pocket Notch uses your approximate location only when weather monitoring is enabled to show current conditions beside the notch.</string>
+	<key>NSRemindersUsageDescription</key>
+	<string>Pocket Notch reads and writes your Reminders so the Todo card stays in sync with the system Reminders app.</string>
+	<key>NSRemindersFullAccessUsageDescription</key>
+	<string>Pocket Notch reads and writes your Reminders so the Todo card stays in sync with the system Reminders app.</string>
+	<key>NSCalendarsUsageDescription</key>
+	<string>Pocket Notch reads your Calendar so the Todo card can show the events scheduled for the selected day.</string>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string>Pocket Notch reads your Calendar so the Todo card can show the events scheduled for the selected day.</string>
+	<key>NSCalendarsWriteOnlyAccessUsageDescription</key>
+	<string>Pocket Notch reads your Calendar so the Todo card can show the events scheduled for the selected day.</string>
+	<key>NSHumanReadableCopyright</key>
+	<string>Copyright © 2026 Pocket Notch. All rights reserved.</string>
+</dict>
+</plist>
