@@ -6,17 +6,15 @@ PocketNotch is a lightweight macOS utility that transforms your Mac’s notch in
 
 **让 Mac 刘海成为一个轻巧、实用的交互空间。** PocketNotch 是一款 macOS 菜单栏应用，将动态岛式交互带到 Mac 屏幕顶部，并整合媒体播放、系统状态和日常工具。
 
-![image-20261104151851256](/Users/jobeth/Library/Application Support/typora-user-images/image-20261104151851256.png)
+![preview-1](assets/preview-1.png)
 
-![image-20261104151912698](/Users/jobeth/Library/Application Support/typora-user-images/image-20261104151912698.png)
+![preview-2](assets/preview-2.png)
 
-![image-20261104152017182](/Users/jobeth/Library/Application Support/typora-user-images/image-20261104152017182.png)
+![preview-3](assets/preview-3.png)
 
-![image-20261104152132840](/Users/jobeth/Library/Application Support/typora-user-images/image-20261104152132840.png)
+![preview-4](assets/preview-4.png)
 
-
-
-![image-20261104152237692](/Users/jobeth/Library/Application Support/typora-user-images/image-20261104152237692.png)
+![preview-5](assets/preview-5.png)
 
 ## 功能
 
