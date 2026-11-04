@@ -11,8 +11,7 @@ struct ClipboardExpandedView: View {
 
     @State private var showCopiedToast = false
     @State private var toastTask: Task<Void, Never>?
-    /// 当前处于悬停状态的卡片 id：用于其它卡片同时做轻微压缩的联动动画。
-    @State private var hoveringItemID: UUID?
+
 
     var body: some View {
         VStack(spacing: 0) {
@@ -58,14 +57,7 @@ struct ClipboardExpandedView: View {
         ClipboardCardView(
             item: item,
             isHighlighted: store.lastCopiedItemID == item.id,
-            isSiblingHovered: hoveringItemID != nil,
-            onHoverChanged: { hovered in
-                if hovered {
-                    hoveringItemID = item.id
-                } else if hoveringItemID == item.id {
-                    hoveringItemID = nil
-                }
-            },
+
             onCopy: { store.reuse(item) },
             onDelete: {
                 withAnimation(.easeOut(duration: 0.18)) {
@@ -192,8 +184,6 @@ private enum ClipboardThumbnailCache {
 private struct ClipboardCardView: View {
     let item: ClipboardItem
     let isHighlighted: Bool
-    let isSiblingHovered: Bool
-    let onHoverChanged: (Bool) -> Void
     let onCopy: () -> Void
     let onDelete: () -> Void
     let onToggleLock: () -> Void
@@ -230,10 +220,8 @@ private struct ClipboardCardView: View {
 
             deleteButton
         }
-        .scaleEffect(isSiblingHovered && !isHovering ? 0.97 : 1)
         .onHover { hovered in
             isHovering = hovered
-            onHoverChanged(hovered)
         }
         .contextMenu {
             Button(item.isLocked ? "clipboard.unlock" : "clipboard.lock") {

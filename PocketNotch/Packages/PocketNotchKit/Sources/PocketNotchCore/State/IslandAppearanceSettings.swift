@@ -108,7 +108,7 @@ public final class IslandAppearanceSettings: ObservableObject {
     /// 毛玻璃区域的可调范围与默认值。下限 1%——材质永远留一线，不允许整岛
     /// 调到纯黑（纯黑是 `standard` 样式的事）。
     public static let frostedRegionBounds: ClosedRange<CGFloat> = 0.01...1
-    public static let defaultFrostedRegion: CGFloat = 0.75
+    public static let defaultFrostedRegion: CGFloat = 0.01
 
     /// 液态玻璃的材质变体（常规 / 清澈 / Dock / 气泡）。只对 `liquidGlass`
     /// 样式生效；`simulatedLiquid` 是纯 SwiftUI 仿制，不经过系统玻璃。
@@ -116,7 +116,7 @@ public final class IslandAppearanceSettings: ObservableObject {
         didSet { defaults.set(expandedLiquidGlassMaterial.rawValue, forKey: Keys.expandedLiquidGlassMaterial) }
     }
 
-    public static let defaultLiquidGlassMaterial: LiquidGlassMaterial = .bubbles
+    public static let defaultLiquidGlassMaterial: LiquidGlassMaterial = .regular
 
     private let defaults: UserDefaults
 

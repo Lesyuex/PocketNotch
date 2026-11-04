@@ -26,6 +26,20 @@ public struct TimerModule: PocketNotchModule {
         AnyView(NowTimerCardView(store: store))
     }
 
+    public func compactNotificationLeadingView() -> AnyView {
+        AnyView(TimerCompletionLeadingView(store: store))
+    }
+
+    public func compactNotificationTrailingView() -> AnyView {
+        AnyView(TimerCompletionTrailingView(store: store))
+    }
+
+    /// 倒计时完成临时通知优先级 25：高于音量/耳机（20）与 Agent（10），
+    /// 让完成事件能抢占同区临时层。
+    @MainActor public func transientVisualPriority() -> Int? {
+        store.completionPresentation != nil ? 25 : nil
+    }
+
     public func activate() {}
 
     public func deactivate() {

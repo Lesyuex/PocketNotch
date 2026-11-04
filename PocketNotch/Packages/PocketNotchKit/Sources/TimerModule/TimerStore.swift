@@ -41,6 +41,14 @@ public final class TimerStore {
     /// 秒表分段时长（秒），按记录顺序保存。
     public private(set) var laps: [TimeInterval] = []
 
+    /// 倒计时完成后的临时上岛通知态；非 nil 时由 TimerModule 暴露为 compact 临时通知。
+    public private(set) var completionPresentation: TimerCompletionPresentation?
+    private var completionDismissTask: Task<Void, Never>?
+    private static let completionDisplayDuration: Duration = .seconds(3)
+
+    /// 当前自定义名称；空表示用模式默认标题（倒计时 / 秒表）。
+    public private(set) var name: String = ""
+
     private static let tickInterval: TimeInterval = 0.25
 
     private var displayTimer: Timer?
@@ -75,6 +83,7 @@ public final class TimerStore {
     public func setMode(_ mode: Mode) {
         guard mode != self.mode, runState != .running else { return }
         stopTicker()
+        clearCompletionPresentation()
         self.mode = mode
         runState = .idle
         anchor = nil
@@ -97,6 +106,7 @@ public final class TimerStore {
 
     public func start() {
         guard runState != .running else { return }
+        clearCompletionPresentation()
         switch mode {
         case .countdown:
             guard countdownDuration > 0 else { return }
@@ -122,6 +132,7 @@ public final class TimerStore {
     public func reset() {
         stopTicker()
         anchor = nil
+        clearCompletionPresentation()
         runState = .idle
         if mode == .countdown {
             countdownDuration = 0
@@ -135,6 +146,7 @@ public final class TimerStore {
     public func setCountdownDuration(_ seconds: TimeInterval) {
         guard mode == .countdown, runState != .running else { return }
         guard seconds >= Self.countdownMinimum else { return }
+        clearCompletionPresentation()
         let clamped = (min(seconds, Self.countdownMaximum) * 100).rounded() / 100
         countdownDuration = clamped
         remaining = clamped
@@ -144,6 +156,7 @@ public final class TimerStore {
     /// 按分钟调整刚输入的倒计时时长（仅倒计时未运行时允许）。
     public func adjustCountdown(by delta: TimeInterval) {
         guard mode == .countdown, runState != .running else { return }
+        clearCompletionPresentation()
         let base = countdownDuration > 0 ? countdownDuration : Self.defaultCountdown
         let updated = min(max(base + delta, Self.countdownMinimum), Self.countdownMaximum)
         countdownDuration = updated
@@ -216,10 +229,43 @@ public final class TimerStore {
         stopTicker()
         anchor = nil
         runState = .finished
+        presentCompletion()
         if let sound = NSSound(named: "Glass") {
             sound.play()
         } else {
             NSSound.beep()
         }
     }
+
+    private func presentCompletion() {
+        completionPresentation = TimerCompletionPresentation(duration: countdownDuration)
+        completionDismissTask?.cancel()
+        completionDismissTask = Task { [weak self] in
+            do {
+                try await Task.sleep(for: Self.completionDisplayDuration)
+            } catch {
+                return
+            }
+            guard !Task.isCancelled else { return }
+            self?.completionPresentation = nil
+            self?.completionDismissTask = nil
+        }
+    }
+
+    private func clearCompletionPresentation() {
+        completionDismissTask?.cancel()
+        completionDismissTask = nil
+        completionPresentation = nil
+    }
+
+    /// 更新当前自定义名称（由卡片重命名提交时同步）。
+    public func updateName(_ value: String) {
+        name = value
+    }
+}
+
+/// 倒计时完成时上岛临时通知的载荷；保留原时长以备文案扩展。
+public struct TimerCompletionPresentation: Sendable, Equatable {
+    public let duration: TimeInterval
+    public init(duration: TimeInterval) { self.duration = duration }
 }

@@ -310,6 +310,7 @@ struct NowTimerCardView: View {
 
     private func commitName() {
         customName = String(nameDraft.trimmingCharacters(in: .whitespacesAndNewlines).prefix(12))
+        store.updateName(customName)
         isRenaming = false
         isNameFieldFocused = false
     }
