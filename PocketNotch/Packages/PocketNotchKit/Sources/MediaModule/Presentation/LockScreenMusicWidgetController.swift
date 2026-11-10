@@ -127,6 +127,9 @@ public final class LockScreenMusicWidgetController {
             hide(immediately: true)
         case NSWorkspace.didWakeNotification, NSWorkspace.screensDidWakeNotification:
             isScreenAwake = true
+            // 待机唤醒时缓存的锁屏相位可能早于系统会话状态更新，
+            // 展示前先核对一次，避免唤醒到桌面后组件滞留再延迟关闭。
+            screenLockController.reconcileLockStateFromSession()
             updateVisibility()
         default:
             break

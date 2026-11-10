@@ -9,6 +9,7 @@
 "shelf.empty" = "拖入文件以暂存";
 "systemStats.title" = "系统状态";
 "menu.settings" = "设置";
+"menu.update" = "更新";
 "settings.category.appearanceInteraction" = "外观与交互";
 "settings.category.dynamicServices" = "动态服务";
 "settings.category.components" = "组件";

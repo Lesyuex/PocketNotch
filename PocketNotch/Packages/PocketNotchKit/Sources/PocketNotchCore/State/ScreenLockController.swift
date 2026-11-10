@@ -21,6 +21,7 @@ public final class ScreenLockController: ObservableObject {
     private var unlockConfirmationTask: Task<Void, Never>?
     private var lockReconcileTask: Task<Void, Never>?
     private var lockedStateMonitorTask: Task<Void, Never>?
+    private var wakeConfirmationTask: Task<Void, Never>?
     private var lockSound: NSSound?
     private var unlockSound: NSSound?
     private var isStarted = false
@@ -56,6 +57,8 @@ public final class ScreenLockController: ObservableObject {
         lockReconcileTask = nil
         lockedStateMonitorTask?.cancel()
         lockedStateMonitorTask = nil
+        wakeConfirmationTask?.cancel()
+        wakeConfirmationTask = nil
         unlockConfirmationTask?.cancel()
         unlockConfirmationTask = nil
         lockSound?.stop()
@@ -135,9 +138,12 @@ public final class ScreenLockController: ObservableObject {
         case NSWorkspace.screensDidWakeNotification,
              NSWorkspace.didWakeNotification:
             reconcileWithSession()
+            startWakeLockConfirmation()
         case NSWorkspace.willSleepNotification, NSWorkspace.screensDidSleepNotification:
             lockReconcileTask?.cancel()
             lockReconcileTask = nil
+            wakeConfirmationTask?.cancel()
+            wakeConfirmationTask = nil
         default:
             break
         }
@@ -192,12 +198,34 @@ public final class ScreenLockController: ObservableObject {
         }
     }
 
+    /// 让外部（如锁屏音乐组件）在展示前主动核对一次真实锁屏状态。
+    public func reconcileLockStateFromSession() {
+        reconcileWithSession()
+    }
+
     private func reconcileWithSession() {
         guard let isLocked = Self.sessionScreenLockedState() else { return }
         if isLocked {
             markLocked()
         } else if phase == .locked {
             markUnlocking()
+        }
+    }
+
+    /// 唤醒瞬间系统会话字典可能仍报告「已锁定」；用短间隔轮询尽快确认解锁，
+    /// 避免依赖锁屏组件刷新或 500ms 兜底轮询造成视觉延迟。
+    private func startWakeLockConfirmation() {
+        wakeConfirmationTask?.cancel()
+        wakeConfirmationTask = Task { [weak self] in
+            for _ in 0..<Self.wakeConfirmationAttempts {
+                try? await Task.sleep(for: Self.wakeConfirmationInterval)
+                guard !Task.isCancelled, let self, self.phase == .locked else { return }
+                if Self.sessionScreenLockedState() == false {
+                    self.markUnlocking()
+                    return
+                }
+            }
+            self?.wakeConfirmationTask = nil
         }
     }
 
@@ -256,6 +284,8 @@ public final class ScreenLockController: ObservableObject {
     private static let screenLockUIIsHiddenNotification = Notification.Name("com.apple.screenLockUIIsHidden")
     private static let screenSaverDidStartNotification = Notification.Name("com.apple.screensaver.didstart")
     private static let screenSaverDidStopNotification = Notification.Name("com.apple.screensaver.didstop")
+    private static let wakeConfirmationInterval: Duration = .milliseconds(100)
+    private static let wakeConfirmationAttempts = 30
     private static let lockReconcileDelays: [Duration] = [
         .milliseconds(120),
         .milliseconds(220),

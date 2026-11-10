@@ -189,8 +189,8 @@ private func withLuminance(_ c: RGB, _ l: Float) -> RGB {
 }
 
 /// 主色过暗时整体提亮，避免暗色封面导致频谱柱几乎不可见。
-private let darkPrimaryFloor: Float = 0.22
-private let darkPrimaryLift: Float = 0.18
+private let darkPrimaryFloor: Float = 0.26
+private let darkPrimaryLift: Float = 0.20
 
 private func liftDarkPrimary(_ c: RGB) -> RGB {
     let l = luminance(c)
@@ -202,8 +202,8 @@ private func liftDarkPrimary(_ c: RGB) -> RGB {
 
 /// 所有柱子以主色为基，叠加 5% 经大 σ 平滑的局部色相细节，上下各取自己的局部色。
 struct AnchorSpectrumBarProvider: SpectrumBarColorProvider {
-    private let detailWeight: Float = 0.5
-    private let luminanceSpan: Float = 0.18
+    private let detailWeight: Float = 0.80
+    private let luminanceSpan: Float = 0.10
 
     func barGradients(artwork: Data?, count: Int) -> [SpectrumBarGradient] {
         guard count > 0,

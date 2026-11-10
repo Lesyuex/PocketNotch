@@ -9,6 +9,7 @@
 "shelf.empty" = "Drop files to stash";
 "systemStats.title" = "System";
 "menu.settings" = "Settings";
+"menu.update" = "Update";
 "settings.category.appearanceInteraction" = "Appearance & Interaction";
 "settings.category.dynamicServices" = "Dynamic Services";
 "settings.category.components" = "Components";

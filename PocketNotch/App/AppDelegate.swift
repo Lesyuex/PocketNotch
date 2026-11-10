@@ -29,6 +29,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private lazy var appLanguageSettings = AppLanguageSettings()
     private lazy var appThemeSettings = AppThemeSettings()
     private lazy var menuBarSettings = MenuBarSettings()
+    private lazy var appUpdateChecker = AppUpdateChecker()
     private lazy var launchAtLoginSettings = LaunchAtLoginSettings()
     private lazy var notchDisplaySettings = NotchDisplaySettings()
     private lazy var notchViewModel = NotchViewModel(
@@ -60,6 +61,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private static let setupPanelSeenKey = "app.setupPanelPresented"
     private var statusItem: NSStatusItem?
+    private var updateMenuItem: NSMenuItem?
+    private var updateRowView: UpdateRowView?
+    private var updateCancellable: AnyCancellable?
     private var isExplicitlyQuitting = false
     private var activityFeedCancellable: AnyCancellable?
     private var agentDisplayCancellable: AnyCancellable?
@@ -87,6 +91,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             agentActivityController.synchronizeEnabledHooksAfterSoftwareUpdateIfNeeded()
         }
         setupStatusItem()
+        appUpdateChecker.checkForUpdatesIfNeeded()
         setupNotchWindowWhenDisplayReady()
         setupVolumeHUD()
         observeLanguageChanges()
@@ -323,6 +328,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 NSStatusBar.system.removeStatusItem(statusItem)
                 self.statusItem = nil
             }
+            updateMenuItem = nil
+            updateRowView = nil
             return
         }
 
@@ -348,6 +355,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         )
         menu.addItem(settingsItem)
 
+        let updateItem = NSMenuItem(
+            title: appLanguageSettings.localizedString("menu.update"),
+            action: #selector(openUpdatePage),
+            keyEquivalent: ""
+        )
+        updateItem.target = self
+        menu.addItem(updateItem)
+        updateMenuItem = updateItem
 
         menu.addItem(.separator())
 
@@ -358,8 +373,50 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         )
         quitItem.target = self
         menu.addItem(quitItem)
+
+        let title = appLanguageSettings.localizedString("menu.update")
+        let titleWidth = ceil((title as NSString).size(
+            withAttributes: [.font: NSFont.menuFont(ofSize: 0)]
+        ).width)
+        let rowHeight = standardMenuRowHeight()
+        let rowWidth = max(menu.size.width, 14 + titleWidth + 16 + 8 + 12)
+        let rowView = UpdateRowView(
+            frame: NSRect(x: 0, y: 0, width: rowWidth, height: rowHeight)
+        )
+        rowView.title = title
+        updateItem.view = rowView
+        updateRowView = rowView
+
+        menu.delegate = self
         item.menu = menu
         statusItem = item
+
+        updateCancellable = appUpdateChecker.$availableUpdate
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in
+                self?.applyUpdateState()
+            }
+        applyUpdateState()
+    }
+
+    private func applyUpdateState() {
+        updateRowView?.isUpdateAvailable = appUpdateChecker.availableUpdate != nil
+    }
+
+    private func standardMenuRowHeight() -> CGFloat {
+        let singleItemMenu = NSMenu()
+        singleItemMenu.addItem(NSMenuItem(title: "A", action: nil, keyEquivalent: ""))
+        let twoItemMenu = NSMenu()
+        twoItemMenu.addItem(NSMenuItem(title: "A", action: nil, keyEquivalent: ""))
+        twoItemMenu.addItem(NSMenuItem(title: "B", action: nil, keyEquivalent: ""))
+        return max(twoItemMenu.size.height - singleItemMenu.size.height, 16)
+    }
+
+    @objc private func openUpdatePage() {
+        let url = appUpdateChecker.availableUpdate?.releaseURL
+            ?? AppUpdateChecker.releasesPageURL
+        NSWorkspace.shared.open(url)
+        appUpdateChecker.checkForUpdatesIfNeeded(force: true)
     }
 
 
@@ -540,5 +597,73 @@ menuBarSettings: menuBarSettings,
 
         settingsWindow.close()
         return true
+    }
+}
+
+extension AppDelegate: NSMenuDelegate {
+    func menuWillOpen(_ menu: NSMenu) {
+        updateRowView?.isHighlighted = false
+        appUpdateChecker.checkForUpdatesIfNeeded()
+    }
+
+    func menu(_ menu: NSMenu, willHighlight item: NSMenuItem?) {
+        updateRowView?.isHighlighted = item === updateMenuItem
+    }
+}
+
+private final class UpdateRowView: NSView {
+    var title: String = "" {
+        didSet { titleLabel.stringValue = title }
+    }
+
+    var isUpdateAvailable = false {
+        didSet { dotView.isHidden = !isUpdateAvailable }
+    }
+
+    var isHighlighted = false {
+        didSet {
+            titleLabel.textColor = isHighlighted ? .selectedMenuItemTextColor : .labelColor
+        }
+    }
+
+    private let titleLabel = NSTextField(labelWithString: "")
+    private let dotView = NSView()
+
+    override init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+
+        titleLabel.font = NSFont.menuFont(ofSize: 0)
+        titleLabel.textColor = .labelColor
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(titleLabel)
+
+        dotView.wantsLayer = true
+        dotView.layer?.backgroundColor = NSColor.systemRed.cgColor
+        dotView.layer?.cornerRadius = 4
+        dotView.isHidden = true
+        dotView.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(dotView)
+
+        NSLayoutConstraint.activate([
+            titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 14),
+            titleLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
+            dotView.widthAnchor.constraint(equalToConstant: 8),
+            dotView.heightAnchor.constraint(equalToConstant: 8),
+            dotView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12),
+            dotView.centerYAnchor.constraint(equalTo: centerYAnchor),
+        ])
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    override func hitTest(_ point: NSPoint) -> NSView? {
+        nil
+    }
+
+    override func viewDidChangeEffectiveAppearance() {
+        super.viewDidChangeEffectiveAppearance()
+        dotView.layer?.backgroundColor = NSColor.systemRed.cgColor
     }
 }

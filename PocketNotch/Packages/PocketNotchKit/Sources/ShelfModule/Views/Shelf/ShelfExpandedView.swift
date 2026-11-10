@@ -47,7 +47,8 @@ struct ShelfExpandedView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         .padding(.horizontal, IslandLayoutToken.expandedNowPageHorizontalInset)
-        .padding(.bottom, -IslandLayoutToken.expandedContentVerticalInset)
+        .padding(.horizontal, 12)
+        .padding(.bottom, -IslandLayoutToken.expandedContentVerticalInset + 16)
         .onChange(of: store.items) { _, items in
             selectedItemIDs.formIntersection(Set(items.map(\.id)))
         }
