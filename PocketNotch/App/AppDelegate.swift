@@ -603,7 +603,7 @@ menuBarSettings: menuBarSettings,
 extension AppDelegate: NSMenuDelegate {
     func menuWillOpen(_ menu: NSMenu) {
         updateRowView?.isHighlighted = false
-        appUpdateChecker.checkForUpdatesIfNeeded()
+        appUpdateChecker.checkForUpdatesIfNeeded(force: true)
     }
 
     func menu(_ menu: NSMenu, willHighlight item: NSMenuItem?) {
