@@ -1387,10 +1387,17 @@ public final class NowPlayingViewModel {
         clearSongNotification()
     }
 
-    /// 只有「隐藏系统音量提示」开启时才接管音量键；关闭后按键交回 macOS，原生 OSD 照常出现。
-    /// PocketNotch 自己的提醒走 CoreAudio 属性监听，与接管无关，因此不受这个开关影响。
-    private func reconcileVolumeKeyInterception() {
-        guard isObserving, notificationSettings.isSystemVolumeHUDHidden else {
+    /// 只有「隐藏系统音量提示」且音量提醒都开启时才接管音量键；任一关闭后按键交回
+    /// macOS，原生 OSD 照常出现。PocketNotch 自己的提醒走 CoreAudio 属性监听，
+    /// 与接管无关，因此不受这个开关影响。
+    /// sink 入参是刚写入的新值——`@Published` 在 willSet 阶段发值，直接读属性会拿到旧值。
+    private func reconcileVolumeKeyInterception(
+        isSystemVolumeHUDHidden: Bool? = nil,
+        isVolumeAdjustmentEnabled: Bool? = nil
+    ) {
+        let hideSystemHUD = isSystemVolumeHUDHidden ?? notificationSettings.isSystemVolumeHUDHidden
+        let adjustmentEnabled = isVolumeAdjustmentEnabled ?? notificationSettings.isVolumeAdjustmentEnabled
+        guard isObserving, hideSystemHUD, adjustmentEnabled else {
             volumeKeyInterceptor.stop()
             return
         }
@@ -1400,15 +1407,17 @@ public final class NowPlayingViewModel {
     private func observeNotificationSettings(_ settings: IslandNotificationSettings) {
         settings.$isSystemVolumeHUDHidden
             .removeDuplicates()
-            .sink { [weak self] _ in
-                self?.reconcileVolumeKeyInterception()
+            .sink { [weak self] isHidden in
+                self?.reconcileVolumeKeyInterception(isSystemVolumeHUDHidden: isHidden)
             }
             .store(in: &notificationSettingsCancellables)
 
         settings.$isVolumeAdjustmentEnabled
             .removeDuplicates()
             .sink { [weak self] enabled in
-                if !enabled { self?.clearVolumePresentation() }
+                guard let self else { return }
+                self.reconcileVolumeKeyInterception(isVolumeAdjustmentEnabled: enabled)
+                if !enabled { self.clearVolumePresentation() }
             }
             .store(in: &notificationSettingsCancellables)
 

@@ -356,7 +356,8 @@
 "settings.permissions.bluetooth.description" = "Detect Bluetooth device connection status";
 "settings.permissions.bluetoothNotEnabled" = "Bluetooth not enabled. Click “Enable” to open System Settings.";
 "settings.permissions.dataAccess" = "Data Access";
-"settings.permissions.dataAccess.description" = "Access stock and weather data";
+"settings.permissions.dataAccess.description" = "Hide the system volume and brightness indicators and show them on the island instead";
+"settings.permissions.dataAccessNeedsAccessibility" = "Accessibility permission has been requested. Once granted, system volume and brightness indicators will be shown on the island instead.";
 "settings.permissions.goEnable" = "Enable";
 "settings.permissions.location" = "Location";
 "settings.permissions.location.description" = "Get location for weather display";

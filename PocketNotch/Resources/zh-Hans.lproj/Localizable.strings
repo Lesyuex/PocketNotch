@@ -300,7 +300,8 @@
 "settings.permissions.bluetooth.description" = "检测蓝牙设备连接状态";
 "settings.permissions.bluetoothNotEnabled" = "蓝牙未开启，点击“去开启”前往系统设置。";
 "settings.permissions.dataAccess" = "数据访问";
-"settings.permissions.dataAccess.description" = "访问股票和天气数据";
+"settings.permissions.dataAccess.description" = "隐藏系统默认音量与亮度提醒，改由灵动岛显示";
+"settings.permissions.dataAccessNeedsAccessibility" = "已请求「辅助功能」授权，开启后系统音量与亮度提醒将改由灵动岛显示。";
 "settings.permissions.goEnable" = "去开启";
 "settings.permissions.location" = "定位";
 "settings.permissions.location.description" = "获取位置信息以显示天气";

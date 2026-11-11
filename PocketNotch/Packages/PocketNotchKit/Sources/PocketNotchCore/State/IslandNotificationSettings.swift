@@ -97,23 +97,20 @@ public final class IslandNotificationSettings: ObservableObject {
         didSet { persist(isAudioOutputChangeEnabled, forKey: Keys.audioOutputChange) }
     }
 
+    /// PocketNotch 自身的音量提醒开关。与系统 OSD 隐藏开关相互独立：
+    /// 模块侧按「隐藏开 && 提醒开」才接管按键——关掉提醒时按键自动交回系统，
+    /// 避免按键被吞掉却没有任何反馈，同时不破坏用户保存的隐藏偏好。
     @Published public var isVolumeAdjustmentEnabled: Bool {
-        didSet {
-            persist(isVolumeAdjustmentEnabled, forKey: Keys.volumeAdjustment)
-            // PocketNotch 自己不提醒时必须把按键交回系统：否则音量键被吞掉却没有任何反馈。
-            if !isVolumeAdjustmentEnabled { isSystemVolumeHUDHidden = false }
-        }
+        didSet { persist(isVolumeAdjustmentEnabled, forKey: Keys.volumeAdjustment) }
     }
 
+    /// 亮度键同理，见 `isVolumeAdjustmentEnabled`。
     @Published public var isBrightnessAdjustmentEnabled: Bool {
-        didSet {
-            persist(isBrightnessAdjustmentEnabled, forKey: Keys.brightnessAdjustment)
-            if !isBrightnessAdjustmentEnabled { isSystemBrightnessHUDHidden = false }
-        }
+        didSet { persist(isBrightnessAdjustmentEnabled, forKey: Keys.brightnessAdjustment) }
     }
 
     /// 接管音量键时吞掉原始按键事件，从而不让 macOS 画出原生音量 OSD。
-    /// 仅在 `isVolumeAdjustmentEnabled` 为真时有效——关掉提醒会把这里一并置回 false。
+    /// 实际接管条件是本开关与 `isVolumeAdjustmentEnabled` 同时为真。
     @Published public var isSystemVolumeHUDHidden: Bool {
         didSet { persist(isSystemVolumeHUDHidden, forKey: Keys.hideSystemVolumeHUD) }
     }

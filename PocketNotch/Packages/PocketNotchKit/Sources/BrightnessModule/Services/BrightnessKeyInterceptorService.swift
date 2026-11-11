@@ -45,7 +45,7 @@ final class BrightnessKeyInterceptorService: BrightnessKeyIntercepting {
         brightnessController: BrightnessProviding,
         onPerformed: @escaping () -> Void = {},
         accessibilityTrustChecker: @escaping () -> Bool = { AXIsProcessTrusted() },
-        accessibilityPrompt: @escaping () -> Void = AccessibilityAuthorization.promptOnceIfNeeded
+        accessibilityPrompt: @escaping () -> Void = AccessibilityAuthorization.promptIfNotTrusted
     ) {
         self.brightnessController = brightnessController
         self.onPerformed = onPerformed
@@ -57,9 +57,8 @@ final class BrightnessKeyInterceptorService: BrightnessKeyIntercepting {
         guard !isStarted else { return }
         isStarted = true
 
-        // 启动时不主动弹出「辅助功能」授权窗，避免打扰用户。仅静默读取授权状态：
-        // 已授权则立即接管亮度键；未授权则保留 macOS 原生亮度键行为，并低频检测用户
-        // 手动授权的结果，授权后自动接管。需要弹窗的入口由调用方按需触发。
+        // 启动时检查「数据访问」授权状态：未授权即申请（已授权/已拒绝时 macOS 不会再弹窗）。
+        // 等待期间保留 macOS 原生亮度键行为，授权后自动接管。
         PocketNotchLog.system.info(
             "Brightness-key interceptor start: accessibilityTrusted=\(self.isAccessibilityTrusted, privacy: .public)"
         )
@@ -68,6 +67,7 @@ final class BrightnessKeyInterceptorService: BrightnessKeyIntercepting {
             return
         }
 
+        accessibilityPrompt()
         PocketNotchLog.system.info("Brightness-key interception awaiting accessibility permission")
         permissionRetryTask = Task { [weak self] in
             for _ in 0..<Self.permissionRetryCount {
@@ -83,10 +83,21 @@ final class BrightnessKeyInterceptorService: BrightnessKeyIntercepting {
                     return
                 }
             }
-            PocketNotchLog.system.info(
-                "Brightness-key interceptor: accessibility not granted within retry window; keys fall through to macOS"
-            )
-            self?.permissionRetryTask = nil
+            // 用户可能在数分钟后才在系统设置里勾选授权：转为低频长期等待，
+            // 授权后自动接管；stop() 会取消本任务，空转开销可忽略。
+            while !Task.isCancelled {
+                do {
+                    try await Task.sleep(for: .seconds(5))
+                } catch {
+                    return
+                }
+                guard let self, self.isStarted else { return }
+                if self.isAccessibilityTrusted {
+                    self.installEventTap()
+                    self.permissionRetryTask = nil
+                    return
+                }
+            }
         }
     }
 

@@ -184,7 +184,7 @@ final class SystemVolumeHUDHiddenSettingsTests: XCTestCase {
         XCTAssertTrue(restored.isSystemBrightnessHUDHidden)
     }
 
-    func testTurningOffPocketNotchVolumeReminderForcesSystemHUDBack() {
+    func testTurningOffPocketNotchVolumeReminderKeepsSystemHUDHidden() {
         let suiteName = "SystemVolumeHUDHiddenSettingsTests.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
         defer { defaults.removePersistentDomain(forName: suiteName) }
@@ -193,13 +193,13 @@ final class SystemVolumeHUDHiddenSettingsTests: XCTestCase {
         XCTAssertTrue(settings.isSystemVolumeHUDHidden)
 
         settings.isVolumeAdjustmentEnabled = false
-        XCTAssertFalse(settings.isSystemVolumeHUDHidden)
+        XCTAssertTrue(settings.isSystemVolumeHUDHidden)
 
         let restored = IslandNotificationSettings(defaults: defaults)
-        XCTAssertFalse(restored.isSystemVolumeHUDHidden)
+        XCTAssertTrue(restored.isSystemVolumeHUDHidden)
     }
 
-    func testTurningOffPocketNotchBrightnessReminderForcesSystemHUDBack() {
+    func testTurningOffPocketNotchBrightnessReminderKeepsSystemHUDHidden() {
         let suiteName = "SystemVolumeHUDHiddenSettingsTests.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
         defer { defaults.removePersistentDomain(forName: suiteName) }
@@ -207,11 +207,11 @@ final class SystemVolumeHUDHiddenSettingsTests: XCTestCase {
         let settings = IslandNotificationSettings(defaults: defaults)
         settings.isBrightnessAdjustmentEnabled = false
 
-        XCTAssertFalse(settings.isSystemBrightnessHUDHidden)
+        XCTAssertTrue(settings.isSystemBrightnessHUDHidden)
         XCTAssertTrue(settings.isSystemVolumeHUDHidden)
     }
 
-    func testReenablingPocketNotchReminderLeavesSystemHUDChoiceAlone() {
+    func testReminderToggleRoundTripKeepsSystemHUDChoice() {
         let suiteName = "SystemVolumeHUDHiddenSettingsTests.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
         defer { defaults.removePersistentDomain(forName: suiteName) }
@@ -219,8 +219,11 @@ final class SystemVolumeHUDHiddenSettingsTests: XCTestCase {
         let settings = IslandNotificationSettings(defaults: defaults)
         settings.isVolumeAdjustmentEnabled = false
         settings.isVolumeAdjustmentEnabled = true
+        settings.isBrightnessAdjustmentEnabled = false
+        settings.isBrightnessAdjustmentEnabled = true
 
-        XCTAssertFalse(settings.isSystemVolumeHUDHidden)
+        XCTAssertTrue(settings.isSystemVolumeHUDHidden)
+        XCTAssertTrue(settings.isSystemBrightnessHUDHidden)
     }
 
     func testResetToDefaultRestoresHUDHiding() {

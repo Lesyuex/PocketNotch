@@ -6,6 +6,7 @@ import CoreGraphics
 import CoreLocation
 import Foundation
 import MediaModule
+import PocketNotchCore
 import SwiftUI
 
 enum AudioCaptureAuthorizationStatus: Equatable {
@@ -19,7 +20,6 @@ private enum SettingsPermissionRequest: Hashable {
     case audioCapture
     case location
     case bluetooth
-    case dataAccess
     case musicControl(String)
 }
 
@@ -29,7 +29,8 @@ private final class SettingsPermissionModel: NSObject, ObservableObject {
     @Published private(set) var audioCaptureStatus: AudioCaptureAuthorizationStatus?
     @Published private(set) var locationAuthorization: CLAuthorizationStatus = .notDetermined
     @Published private(set) var bluetoothAuthorization: CBManagerAuthorization = .notDetermined
-    @Published private(set) var isDataAccessEnabled = true
+    /// 「数据访问」开关镜像的两个系统提醒隐藏位：任一关闭即视为未开启。
+    @Published private(set) var isSystemReminderHidingEnabled = true
     @Published private(set) var requestingPermissions: Set<SettingsPermissionRequest> = []
     @Published var guidance: String?
     @Published private(set) var authorizedMusicApps: Set<String> = []
@@ -37,14 +38,19 @@ private final class SettingsPermissionModel: NSObject, ObservableObject {
     @Published private(set) var runningMusicApps: Set<String> = MusicControlAuthorization.runningMusicApps()
 
     private let monitoringSettings: MediaMonitoringSettings
+    private let notificationSettings: IslandNotificationSettings
     private let locationManager = CLLocationManager()
     private var bluetoothManager: CBCentralManager?
     private var accessibilityPollingTask: Task<Void, Never>?
     private var requestTimeoutTasks: [SettingsPermissionRequest: Task<Void, Never>] = [:]
     private var cancellables = Set<AnyCancellable>()
 
-    init(monitoringSettings: MediaMonitoringSettings) {
+    init(
+        monitoringSettings: MediaMonitoringSettings,
+        notificationSettings: IslandNotificationSettings
+    ) {
         self.monitoringSettings = monitoringSettings
+        self.notificationSettings = notificationSettings
         super.init()
         locationManager.delegate = self
         authorizedMusicApps = Set(monitoringSettings.musicControlAuthorizedApps)
@@ -57,6 +63,16 @@ private final class SettingsPermissionModel: NSObject, ObservableObject {
         monitoringSettings.$musicControlDeniedApps
             .sink { [weak self] apps in
                 self?.deniedMusicApps = Set(apps)
+            }
+            .store(in: &cancellables)
+        isSystemReminderHidingEnabled =
+            notificationSettings.isSystemVolumeHUDHidden && notificationSettings.isSystemBrightnessHUDHidden
+        notificationSettings.$isSystemVolumeHUDHidden
+            .combineLatest(notificationSettings.$isSystemBrightnessHUDHidden)
+            .map { $0 && $1 }
+            .removeDuplicates()
+            .sink { [weak self] enabled in
+                self?.isSystemReminderHidingEnabled = enabled
             }
             .store(in: &cancellables)
         refresh()
@@ -117,9 +133,6 @@ private final class SettingsPermissionModel: NSObject, ObservableObject {
         if bluetoothAuthorization != .notDetermined {
             finishRequest(.bluetooth)
         }
-        if isDataAccessEnabled {
-            finishRequest(.dataAccess)
-        }
     }
 
     func isRequesting(_ request: SettingsPermissionRequest) -> Bool {
@@ -170,11 +183,22 @@ private final class SettingsPermissionModel: NSObject, ObservableObject {
         }
     }
 
+    /// 「数据访问」开关：同时控制音量键与亮度键对系统原生提醒的接管。
+    /// 关闭即交还按键；开启时若辅助功能未授权，弹系统授权窗并引导，授权后自动生效。
     func toggleDataAccess() {
-        isDataAccessEnabled.toggle()
-        if isDataAccessEnabled {
-            finishRequest(.dataAccess)
+        guidance = nil
+        guard isSystemReminderHidingEnabled, AXIsProcessTrusted() else {
+            notificationSettings.isSystemVolumeHUDHidden = true
+            notificationSettings.isSystemBrightnessHUDHidden = true
+            guard !AXIsProcessTrusted() else { return }
+            let promptKey = kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String
+            AXIsProcessTrustedWithOptions([promptKey: true] as CFDictionary)
+            guidance = NSLocalizedString("settings.permissions.dataAccessNeedsAccessibility", comment: "")
+            beginAccessibilityPolling()
+            return
         }
+        notificationSettings.isSystemVolumeHUDHidden = false
+        notificationSettings.isSystemBrightnessHUDHidden = false
     }
 
     func requestAudioCaptureAuthorization() {
@@ -354,9 +378,15 @@ private enum PermissionDisplayState: Equatable {
 struct PermissionSettingsView: View {
     @StateObject private var model: SettingsPermissionModel
 
-    init(monitoringSettings: MediaMonitoringSettings) {
+    init(
+        monitoringSettings: MediaMonitoringSettings,
+        notificationSettings: IslandNotificationSettings
+    ) {
         _model = StateObject(
-            wrappedValue: SettingsPermissionModel(monitoringSettings: monitoringSettings)
+            wrappedValue: SettingsPermissionModel(
+                monitoringSettings: monitoringSettings,
+                notificationSettings: notificationSettings
+            )
         )
     }
 
@@ -486,11 +516,10 @@ struct PermissionSettingsView: View {
             permissionRow(
                 title: NSLocalizedString("settings.permissions.dataAccess", comment: ""),
                 description: NSLocalizedString("settings.permissions.dataAccess.description", comment: ""),
-                symbol: "lock.shield",
+                symbol: "eye.slash",
                 state: dataAccessDisplayState,
                 actionTitle: dataAccessActionTitle,
-                actionSymbol: "gearshape",
-                isWorking: model.isRequesting(.dataAccess)
+                actionSymbol: dataAccessDisplayState == .authorized ? "eye" : "eye.slash"
             ) {
                 model.toggleDataAccess()
             }
@@ -695,12 +724,15 @@ struct PermissionSettingsView: View {
         }
     }
 
+    /// 生效条件 = 两个隐藏位都开启且辅助功能已授权（接管按键的前提）。
     private var dataAccessDisplayState: PermissionDisplayState {
-        model.isDataAccessEnabled ? .authorized : .denied
+        model.isSystemReminderHidingEnabled && model.isAccessibilityAuthorized ? .authorized : .notAuthorized
     }
 
     private var dataAccessActionTitle: String {
-        model.isDataAccessEnabled ? NSLocalizedString("settings.common.turnOff", comment: "") : NSLocalizedString("settings.common.turnOn", comment: "")
+        dataAccessDisplayState == .authorized
+            ? NSLocalizedString("settings.common.turnOff", comment: "")
+            : NSLocalizedString("settings.common.turnOn", comment: "")
     }
 
     private var authorizedPermissionCount: Int {
@@ -709,7 +741,7 @@ struct PermissionSettingsView: View {
             audioCaptureDisplayState == .authorized,
             locationDisplayState == .authorized,
             bluetoothDisplayState == .authorized,
-            model.isDataAccessEnabled,
+            dataAccessDisplayState == .authorized,
         ].filter { $0 }.count
     }
 

@@ -356,7 +356,10 @@ struct SettingsRootView: View {
                 AgentDevelopmentPlaceholderView()
 
             case .permissions:
-                PermissionSettingsView(monitoringSettings: monitoringSettings)
+                PermissionSettingsView(
+                    monitoringSettings: monitoringSettings,
+                    notificationSettings: notificationSettings
+                )
             }
         }
         .id(selectedPane)

@@ -26,7 +26,7 @@ final class SystemVolumeKeyInterceptorService {
     init(
         volumeController: AudioOutputVolumeProviding,
         accessibilityTrustChecker: @escaping () -> Bool = { AXIsProcessTrusted() },
-        accessibilityPrompt: @escaping () -> Void = AccessibilityAuthorization.promptOnceIfNeeded
+        accessibilityPrompt: @escaping () -> Void = AccessibilityAuthorization.promptIfNotTrusted
     ) {
         self.volumeController = volumeController
         self.accessibilityTrustChecker = accessibilityTrustChecker
@@ -42,8 +42,8 @@ final class SystemVolumeKeyInterceptorService {
             return
         }
 
-        // 未授权时首次启动已提示过一次系统授权弹窗；此后保留 macOS 原生音量键行为，
-        // 并在短时间内低频检测用户手动授权的结果，不再重复弹窗。
+        // 启动时检查「数据访问」授权状态：未授权即申请（已授权/已拒绝时 macOS 不会再弹窗）。
+        // 等待期间保留 macOS 原生音量键行为，授权后自动接管。
         accessibilityPrompt()
         permissionRetryTask = Task { [weak self] in
             for _ in 0..<Self.permissionRetryCount {
@@ -59,7 +59,21 @@ final class SystemVolumeKeyInterceptorService {
                     return
                 }
             }
-            self?.permissionRetryTask = nil
+            // 用户可能在数分钟后才在系统设置里勾选授权：转为低频长期等待，
+            // 授权后自动接管；stop() 会取消本任务，空转开销可忽略。
+            while !Task.isCancelled {
+                do {
+                    try await Task.sleep(for: .seconds(5))
+                } catch {
+                    return
+                }
+                guard let self, self.isStarted else { return }
+                if self.isAccessibilityTrusted {
+                    self.installEventTap()
+                    self.permissionRetryTask = nil
+                    return
+                }
+            }
         }
     }
 

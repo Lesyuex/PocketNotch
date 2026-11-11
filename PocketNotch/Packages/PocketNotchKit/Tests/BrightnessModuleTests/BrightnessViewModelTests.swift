@@ -151,6 +151,46 @@ final class BrightnessViewModelTests: XCTestCase {
         XCTAssertNil(viewModel.brightnessPresentation)
     }
 
+    func testInterceptorGatedByBrightnessAdjustmentToggle() {
+        let settings = IslandNotificationSettings(defaults: nil)
+        settings.isBrightnessAdjustmentEnabled = false
+        let interceptor = StubBrightnessInterceptor()
+        let viewModel = makeViewModel(
+            service: StubBrightnessProvider(brightness: 0.5),
+            settings: settings,
+            interceptor: interceptor
+        )
+
+        viewModel.activate()
+        XCTAssertFalse(interceptor.isRunning)
+
+        settings.isBrightnessAdjustmentEnabled = true
+        XCTAssertTrue(interceptor.isRunning)
+
+        settings.isBrightnessAdjustmentEnabled = false
+        XCTAssertFalse(interceptor.isRunning)
+    }
+
+    func testInterceptorGatedBySystemHUDHidingToggle() {
+        let settings = IslandNotificationSettings(defaults: nil)
+        settings.isSystemBrightnessHUDHidden = false
+        let interceptor = StubBrightnessInterceptor()
+        let viewModel = makeViewModel(
+            service: StubBrightnessProvider(brightness: 0.5),
+            settings: settings,
+            interceptor: interceptor
+        )
+
+        viewModel.activate()
+        XCTAssertFalse(interceptor.isRunning)
+
+        settings.isSystemBrightnessHUDHidden = true
+        XCTAssertTrue(interceptor.isRunning)
+
+        settings.isSystemBrightnessHUDHidden = false
+        XCTAssertFalse(interceptor.isRunning)
+    }
+
     func testBrightnessModuleDoesNotTakeResidentCompactSlot() {
         let module = BrightnessModule(notificationSettings: IslandNotificationSettings(defaults: nil))
         XCTAssertFalse(module.isCompactModuleEnabled)
@@ -183,13 +223,16 @@ final class BrightnessViewModelTests: XCTestCase {
 private final class StubBrightnessInterceptor: BrightnessKeyIntercepting {
     private(set) var isStarted = false
     private(set) var isStopped = false
+    private(set) var isRunning = false
 
     func start() {
         isStarted = true
+        isRunning = true
     }
 
     func stop() {
         isStopped = true
+        isRunning = false
     }
 }
 

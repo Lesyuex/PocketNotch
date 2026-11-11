@@ -1,15 +1,12 @@
 import ApplicationServices
 import Foundation
 
-/// 「辅助功能」授权提示：整个安装生命周期内只提示一次，避免每次启动重复弹系统授权窗。
+/// 「数据访问」授权：接管系统音量/亮度键所依赖的「辅助功能」权限。
 public enum AccessibilityAuthorization {
-    private static let didPromptDefaultsKey = "com.pocketnotch.permission.accessibilityPromptedOnce"
-
-    /// 从未提示过时触发一次系统授权弹窗；之后无论用户是否授权都不再打扰。
-    public static func promptOnceIfNeeded() {
-        let defaults = UserDefaults.standard
-        guard !defaults.bool(forKey: didPromptDefaultsKey) else { return }
-        defaults.set(true, forKey: didPromptDefaultsKey)
+    /// 检查当前授权状态，未授权时触发系统授权弹窗；已授权时静默。
+    /// 用户明确拒绝后 macOS 不会再弹窗，需引导前往系统设置手动开启。
+    public static func promptIfNotTrusted() {
+        guard !AXIsProcessTrusted() else { return }
         let promptKey = kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String
         AXIsProcessTrustedWithOptions([promptKey: true] as CFDictionary)
     }

@@ -61,11 +61,14 @@ public final class BrightnessViewModel {
         if let keyInterceptor {
             self.keyInterceptor = keyInterceptor
         } else {
+            // 必须显式标注 onPerformed：初始化器有多个函数类型参数，未标注的尾随闭包
+            // 会按向后匹配规则绑到最后一个（accessibilityPrompt），导致上岛回调拿到空闭包。
             self.keyInterceptor = BrightnessKeyInterceptorService(
-                brightnessController: brightnessService
-            ) { [weak self] in
-                self?.handleBrightnessAdjustment()
-            }
+                brightnessController: brightnessService,
+                onPerformed: { [weak self] in
+                    self?.handleBrightnessAdjustment()
+                }
+            )
         }
         observeNotificationSettings(self.notificationSettings)
         observeExpansionState()
@@ -85,10 +88,16 @@ public final class BrightnessViewModel {
         clearBrightnessPresentation()
     }
 
-    /// 只有「隐藏系统亮度提示」开启时才接管亮度键；关闭后按键交回 macOS，原生 OSD 照常出现。
-    /// PocketNotch 自己的提醒不依赖接管，因此不受这个开关影响。
-    private func reconcileKeyInterception() {
-        guard isActive, notificationSettings.isSystemBrightnessHUDHidden else {
+    /// 只有「隐藏系统亮度提示」且亮度提醒都开启时才接管亮度键；任一关闭后按键交回
+    /// macOS，原生 OSD 照常出现。PocketNotch 自己的提醒不依赖接管，因此不受这个开关影响。
+    /// sink 入参是刚写入的新值——`@Published` 在 willSet 阶段发值，直接读属性会拿到旧值。
+    private func reconcileKeyInterception(
+        isSystemBrightnessHUDHidden: Bool? = nil,
+        isBrightnessAdjustmentEnabled: Bool? = nil
+    ) {
+        let hideSystemHUD = isSystemBrightnessHUDHidden ?? notificationSettings.isSystemBrightnessHUDHidden
+        let adjustmentEnabled = isBrightnessAdjustmentEnabled ?? notificationSettings.isBrightnessAdjustmentEnabled
+        guard isActive, hideSystemHUD, adjustmentEnabled else {
             keyInterceptor?.stop()
             return
         }
@@ -136,15 +145,17 @@ public final class BrightnessViewModel {
     private func observeNotificationSettings(_ settings: IslandNotificationSettings) {
         settings.$isSystemBrightnessHUDHidden
             .removeDuplicates()
-            .sink { [weak self] _ in
-                self?.reconcileKeyInterception()
+            .sink { [weak self] isHidden in
+                self?.reconcileKeyInterception(isSystemBrightnessHUDHidden: isHidden)
             }
             .store(in: &notificationSettingsCancellables)
 
         settings.$isBrightnessAdjustmentEnabled
             .removeDuplicates()
             .sink { [weak self] enabled in
-                if !enabled { self?.clearBrightnessPresentation() }
+                guard let self else { return }
+                self.reconcileKeyInterception(isBrightnessAdjustmentEnabled: enabled)
+                if !enabled { self.clearBrightnessPresentation() }
             }
             .store(in: &notificationSettingsCancellables)
     }
