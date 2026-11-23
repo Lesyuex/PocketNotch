@@ -386,10 +386,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         ).width)
         let statusWidth = ["menu.update.available", "menu.update.checking",
                            "menu.update.upToDate", "menu.update.checkFailed",
-                           "menu.update.downloading", "menu.update.verifying",
-                           "menu.update.installing", "menu.update.installed",
-                           "menu.update.failed"]
-            .map { appLanguageSettings.localizedString($0) }
+                           "menu.update.downloading", "menu.update.downloading.progress",
+                           "menu.update.verifying", "menu.update.installing",
+                           "menu.update.installed", "menu.update.failed"]
+            .map { key -> String in
+                key == "menu.update.downloading.progress"
+                    ? String(format: appLanguageSettings.localizedString(key), 100)
+                    : appLanguageSettings.localizedString(key)
+            }
             .map { ceil(($0 as NSString).size(
                 withAttributes: [.font: NSFont.menuFont(ofSize: 0)]
             ).width) }
@@ -421,6 +425,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 guard let self else { return }
                 self.applyUpdateState()
                 switch phase {
+                case .downloading(let progress):
+                    self.updateToast.showProgress(
+                        self.downloadStatusText(progress),
+                        progress: progress,
+                        near: self.statusItem?.button?.window?.frame
+                    )
                 case .failed:
                     self.updateToast.show(
                         self.appLanguageSettings.localizedString("menu.update.failed"),
@@ -447,8 +457,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             row.statusText = appUpdateChecker.availableUpdate == nil
                 ? nil
                 : appLanguageSettings.localizedString("menu.update.available")
-        case .downloading:
-            row.statusText = appLanguageSettings.localizedString("menu.update.downloading")
+        case .downloading(let progress):
+            row.statusText = downloadStatusText(progress)
         case .verifying:
             row.statusText = appLanguageSettings.localizedString("menu.update.verifying")
         case .installing:
@@ -458,6 +468,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         case .failed:
             row.statusText = appLanguageSettings.localizedString("menu.update.failed")
         }
+    }
+
+    private func downloadStatusText(_ progress: Double?) -> String {
+        guard let progress else {
+            return appLanguageSettings.localizedString("menu.update.downloading")
+        }
+        let percent = Int((min(max(progress, 0), 1) * 100).rounded())
+        return String(
+            format: appLanguageSettings.localizedString("menu.update.downloading.progress"),
+            percent
+        )
     }
 
     private func standardMenuRowHeight() -> CGFloat {
@@ -479,7 +500,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if case .failed = appUpdater.phase { appUpdater.reset() }
 
         if let release = appUpdateChecker.availableUpdate, release.dmgAsset != nil {
-            showTransientUpdateMessage(appLanguageSettings.localizedString("menu.update.downloading"))
             appUpdater.update(to: release)
             return
         }
@@ -489,9 +509,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             guard let self else { return }
             await self.appUpdateChecker.checkForUpdates()
             if let release = self.appUpdateChecker.availableUpdate, release.dmgAsset != nil {
-                self.showTransientUpdateMessage(
-                    self.appLanguageSettings.localizedString("menu.update.downloading")
-                )
                 self.appUpdater.update(to: release)
                 return
             }
@@ -513,7 +530,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         applyUpdateState()
         let anchor = statusItem?.button?.window?.frame
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { [weak self] in
-            self?.updateToast.show(message, near: anchor)
+            guard let self, case .idle = self.appUpdater.phase else { return }
+            self.updateToast.show(message, near: anchor)
         }
         let workItem = DispatchWorkItem { [weak self] in
             self?.transientUpdateMessage = nil
@@ -727,58 +745,116 @@ extension AppDelegate: NSMenuDelegate {
 
 private final class UpdateToast {
     private var panel: NSPanel?
+    private var messageLabel: NSTextField?
+    private var progressIndicator: NSProgressIndicator?
+    private var labelCenterYConstraint: NSLayoutConstraint?
     private var dismissWorkItem: DispatchWorkItem?
 
     func show(_ message: String, near anchorFrame: NSRect?) {
+        configure(showsProgress: false, near: anchorFrame)
+        messageLabel?.stringValue = message
+        scheduleDismiss()
+    }
+
+    func showProgress(_ message: String, progress: Double?, near anchorFrame: NSRect?) {
         dismissWorkItem?.cancel()
-        panel?.orderOut(nil)
+        dismissWorkItem = nil
+        configure(showsProgress: true, near: anchorFrame)
+        messageLabel?.stringValue = message
+        if let progress {
+            progressIndicator?.isIndeterminate = false
+            progressIndicator?.doubleValue = min(100, max(0, progress * 100))
+        } else {
+            progressIndicator?.isIndeterminate = true
+        }
+    }
 
-        let panel = NSPanel(
-            contentRect: NSRect(x: 0, y: 0, width: 200, height: 40),
-            styleMask: [.borderless, .nonactivatingPanel],
-            backing: .buffered,
-            defer: false
-        )
-        panel.level = .floating
-        panel.isOpaque = false
-        panel.backgroundColor = .clear
-        panel.hasShadow = true
+    private func configure(showsProgress: Bool, near anchorFrame: NSRect?) {
+        let isNewPanel = panel == nil
+        if isNewPanel {
+            let panel = NSPanel(
+                contentRect: NSRect(x: 0, y: 0, width: 200, height: 40),
+                styleMask: [.borderless, .nonactivatingPanel],
+                backing: .buffered,
+                defer: false
+            )
+            panel.level = .floating
+            panel.isOpaque = false
+            panel.backgroundColor = .clear
+            panel.hasShadow = true
 
-        let effect = NSVisualEffectView(frame: panel.contentView?.bounds ?? .zero)
-        effect.material = .hudWindow
-        effect.state = .active
-        effect.wantsLayer = true
-        effect.layer?.cornerRadius = 10
-        effect.layer?.masksToBounds = true
-        panel.contentView = effect
+            let effect = NSVisualEffectView(frame: panel.contentView?.bounds ?? .zero)
+            effect.material = .hudWindow
+            effect.state = .active
+            effect.wantsLayer = true
+            effect.layer?.cornerRadius = 10
+            effect.layer?.masksToBounds = true
+            panel.contentView = effect
 
-        let label = NSTextField(labelWithString: message)
-        label.font = NSFont.systemFont(ofSize: 12, weight: .medium)
-        label.textColor = .labelColor
-        label.alignment = .center
-        label.translatesAutoresizingMaskIntoConstraints = false
-        effect.addSubview(label)
-        NSLayoutConstraint.activate([
-            label.centerXAnchor.constraint(equalTo: effect.centerXAnchor),
-            label.centerYAnchor.constraint(equalTo: effect.centerYAnchor),
-            label.leadingAnchor.constraint(greaterThanOrEqualTo: effect.leadingAnchor, constant: 12),
-            label.trailingAnchor.constraint(lessThanOrEqualTo: effect.trailingAnchor, constant: -12),
-        ])
+            let label = NSTextField(labelWithString: "")
+            label.font = NSFont.systemFont(ofSize: 12, weight: .medium)
+            label.textColor = .labelColor
+            label.alignment = .center
+            label.translatesAutoresizingMaskIntoConstraints = false
+            effect.addSubview(label)
+
+            let indicator = NSProgressIndicator()
+            indicator.style = .bar
+            indicator.controlSize = .small
+            indicator.isBezeled = false
+            indicator.minValue = 0
+            indicator.maxValue = 100
+            indicator.translatesAutoresizingMaskIntoConstraints = false
+            effect.addSubview(indicator)
+
+            NSLayoutConstraint.activate([
+                label.centerXAnchor.constraint(equalTo: effect.centerXAnchor),
+                label.leadingAnchor.constraint(greaterThanOrEqualTo: effect.leadingAnchor, constant: 12),
+                label.trailingAnchor.constraint(lessThanOrEqualTo: effect.trailingAnchor, constant: -12),
+                indicator.leadingAnchor.constraint(equalTo: effect.leadingAnchor, constant: 16),
+                indicator.trailingAnchor.constraint(equalTo: effect.trailingAnchor, constant: -16),
+                indicator.bottomAnchor.constraint(equalTo: effect.bottomAnchor, constant: -14),
+                indicator.heightAnchor.constraint(equalToConstant: 4),
+            ])
+            labelCenterYConstraint = label.centerYAnchor.constraint(equalTo: effect.centerYAnchor)
+            labelCenterYConstraint?.isActive = true
+
+            self.panel = panel
+            self.messageLabel = label
+            self.progressIndicator = indicator
+        }
+
+        guard let panel else { return }
+        let size = NSSize(width: showsProgress ? 220 : 200, height: showsProgress ? 62 : 40)
+        panel.setContentSize(size)
+        progressIndicator?.isHidden = !showsProgress
+        labelCenterYConstraint?.constant = showsProgress ? 10 : 0
 
         if let frame = anchorFrame {
-            panel.setFrameOrigin(NSPoint(x: frame.midX - 100, y: frame.minY - 48))
+            panel.setFrameOrigin(NSPoint(
+                x: frame.midX - size.width / 2,
+                y: frame.minY - size.height - 8
+            ))
         } else {
             panel.center()
         }
-        panel.alphaValue = 0
-        panel.orderFrontRegardless()
-        NSAnimationContext.runAnimationGroup({ context in
-            context.duration = 0.15
-        }) {
-            panel.animator().alphaValue = 1
-        }
 
-        self.panel = panel
+        if isNewPanel {
+            panel.alphaValue = 0
+            panel.orderFrontRegardless()
+            NSAnimationContext.runAnimationGroup({ context in
+                context.duration = 0.15
+            }) {
+                panel.animator().alphaValue = 1
+            }
+        } else if !panel.isVisible {
+            panel.orderFrontRegardless()
+        }
+    }
+
+    private func scheduleDismiss() {
+        dismissWorkItem?.cancel()
+        guard let panel else { return }
         let workItem = DispatchWorkItem { [weak self] in
             NSAnimationContext.runAnimationGroup { context in
                 context.duration = 0.2
@@ -787,6 +863,9 @@ private final class UpdateToast {
                 panel.orderOut(nil)
             }
             self?.panel = nil
+            self?.messageLabel = nil
+            self?.progressIndicator = nil
+            self?.labelCenterYConstraint = nil
         }
         dismissWorkItem = workItem
         DispatchQueue.main.asyncAfter(deadline: .now() + 3, execute: workItem)

@@ -15,6 +15,7 @@
 "menu.update.upToDate" = "已是最新版本";
 "menu.update.checkFailed" = "检查失败";
 "menu.update.downloading" = "下载中...";
+"menu.update.downloading.progress" = "下载中 %d%%";
 "menu.update.verifying" = "校验中...";
 "menu.update.installing" = "安装中...";
 "menu.update.installed" = "安装完成，正在重启...";

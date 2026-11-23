@@ -15,6 +15,7 @@
 "menu.update.upToDate" = "Up to date";
 "menu.update.checkFailed" = "Check failed";
 "menu.update.downloading" = "Downloading...";
+"menu.update.downloading.progress" = "Downloading %d%%";
 "menu.update.verifying" = "Verifying...";
 "menu.update.installing" = "Installing...";
 "menu.update.installed" = "Installed, restarting...";

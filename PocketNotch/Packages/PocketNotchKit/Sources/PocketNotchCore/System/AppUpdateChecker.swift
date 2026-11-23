@@ -233,11 +233,77 @@ public final class AppUpdateChecker: ObservableObject {
 
 public enum AppUpdaterPhase: Equatable {
     case idle
-    case downloading
+    case downloading(progress: Double?)
     case verifying
     case installing
     case installed
     case failed(String)
+}
+
+private final class AppUpdaterDownloadDelegate: NSObject, URLSessionDownloadDelegate, @unchecked Sendable {
+    private let destination: URL
+    private let fileManager: FileManager
+    private let progressHandler: @Sendable (Double?) -> Void
+    private let completion: @Sendable (Result<Void, Error>) -> Void
+    private var session: URLSession?
+    private var isFinished = false
+
+    init(
+        destination: URL,
+        fileManager: FileManager,
+        progressHandler: @escaping @Sendable (Double?) -> Void,
+        completion: @escaping @Sendable (Result<Void, Error>) -> Void
+    ) {
+        self.destination = destination
+        self.fileManager = fileManager
+        self.progressHandler = progressHandler
+        self.completion = completion
+    }
+
+    func urlSession(
+        _ session: URLSession,
+        downloadTask: URLSessionDownloadTask,
+        didWriteData bytesWritten: Int64,
+        totalBytesWritten: Int64,
+        totalBytesExpectedToWrite: Int64
+    ) {
+        let progress: Double? = totalBytesExpectedToWrite > 0
+            ? min(1, Double(totalBytesWritten) / Double(totalBytesExpectedToWrite))
+            : nil
+        progressHandler(progress)
+    }
+
+    func urlSession(
+        _ session: URLSession,
+        downloadTask: URLSessionDownloadTask,
+        didFinishDownloadingTo location: URL
+    ) {
+        do {
+            if fileManager.fileExists(atPath: destination.path) {
+                try fileManager.removeItem(at: destination)
+            }
+            try fileManager.copyItem(at: location, to: destination)
+            finish(.success(()))
+        } catch {
+            finish(.failure(error))
+        }
+    }
+
+    func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+        guard let error else { return }
+        finish(.failure(error))
+    }
+
+    func attach(_ session: URLSession) {
+        self.session = session
+    }
+
+    private func finish(_ result: Result<Void, Error>) {
+        guard !isFinished else { return }
+        isFinished = true
+        session?.finishTasksAndInvalidate()
+        completion(result)
+    }
 }
 
 @MainActor
@@ -295,10 +361,9 @@ public final class AppUpdater: ObservableObject {
             try fileManager.createDirectory(at: workspace, withIntermediateDirectories: true)
             defer { try? fileManager.removeItem(at: workspace) }
 
-            phase = .downloading
-            let (downloadedDMG, _) = try await session.download(from: asset.downloadURL)
+            phase = .downloading(progress: 0)
             let dmgURL = workspace.appendingPathComponent(asset.name)
-            try fileManager.copyItem(at: downloadedDMG, to: dmgURL)
+            try await download(asset.downloadURL, to: dmgURL)
 
             var expectedDigest = asset.digest?
                 .replacingOccurrences(of: "sha256:", with: "")
@@ -352,6 +417,31 @@ public final class AppUpdater: ObservableObject {
             let message = error.localizedDescription
             phase = .failed(message)
             PocketNotchLog.core.error("Update failed: \(message, privacy: .public)")
+        }
+    }
+
+    private func download(_ url: URL, to destination: URL) async throws {
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            let delegate = AppUpdaterDownloadDelegate(
+                destination: destination,
+                fileManager: fileManager,
+                progressHandler: { [weak self] progress in
+                    Task { @MainActor in
+                        guard let self, case .downloading = self.phase else { return }
+                        self.phase = .downloading(progress: progress)
+                    }
+                },
+                completion: { result in
+                    continuation.resume(with: result)
+                }
+            )
+            let downloadSession = URLSession(
+                configuration: session.configuration,
+                delegate: delegate,
+                delegateQueue: nil
+            )
+            delegate.attach(downloadSession)
+            downloadSession.downloadTask(with: url).resume()
         }
     }
 
