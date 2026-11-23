@@ -129,6 +129,8 @@ public final class LockScreenMusicWidgetController {
             queue: .main
         ) { [weak self] _ in
             MainActor.assumeIsolated {
+                // 合盖/开盖会改变屏幕集合；清掉外屏缓存，让组件回到刘海主屏。
+                self?.targetDisplayIdentifier = nil
                 self?.updateVisibility()
             }
         }
