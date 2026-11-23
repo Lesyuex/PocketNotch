@@ -49,6 +49,21 @@ final class ExpandedIslandHeightTests: XCTestCase {
         )
     }
 
+    func testStandardPageTotalHeightStaysFixedAcrossHiddenIslandHeights() {
+        let heights: [CGFloat] = [32, 38, 44]
+
+        for height in heights {
+            let metrics = IslandBackgroundMetrics.resolved(
+                hiddenIslandSize: CGSize(width: 220, height: height),
+                notchPhysicalWidth: 220,
+                expandedModuleCount: 1,
+                preferredExpandedTotalHeight: IslandLayoutToken.expandedStandardPageTotalHeight
+            )
+
+            XCTAssertEqual(metrics.expandedHeight, IslandLayoutToken.expandedStandardPageTotalHeight)
+        }
+    }
+
     func testPreferredExpandedContentWidthDerivesFromContentRatio() {
         let base = IslandBackgroundMetrics.resolved(
             hiddenIslandSize: CGSize(width: 220, height: 38),

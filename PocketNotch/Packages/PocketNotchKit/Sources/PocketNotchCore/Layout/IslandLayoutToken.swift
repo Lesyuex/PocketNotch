@@ -25,9 +25,10 @@ public enum IslandLayoutToken {
     public static let expandedContentHeight: CGFloat = 122
     /// 「此刻」页内容区高度：整窗总高（刘海 32 + 画布 + 内距 8×2）= 168。
     public static let expandedNowPageContentHeight: CGFloat = 120
-    /// 「此刻」页整窗目标总高：以含顶部刘海的整窗高度为锚点倒推内容画布高度，
-    /// 隐藏态高度变化时整窗仍严格保持该值（参考 NotchShape.resolved 的 total 分支）。
-    public static let expandedNowPageTotalHeight: CGFloat = 168
+    /// 「此刻」及剪贴板等标准页共用的整窗目标总高：以含顶部刘海的整窗高度为锚点
+    /// 倒推内容画布高度，隐藏态高度变化时整窗仍严格保持该值（参考 NotchShape.resolved）。
+    public static let expandedStandardPageTotalHeight: CGFloat = 168
+    public static let expandedNowPageTotalHeight: CGFloat = expandedStandardPageTotalHeight
     public static let maximumExpandedContentHeight: CGFloat = 512
     public static let expandedContentTopInset: CGFloat = 8
     public static let expandedContentVerticalInset: CGFloat = 8

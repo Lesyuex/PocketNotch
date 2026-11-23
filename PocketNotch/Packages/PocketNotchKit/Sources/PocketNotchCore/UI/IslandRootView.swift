@@ -630,7 +630,7 @@ public struct IslandRootView: View {
             preferredEarHeight: appearanceSettings.customEarHeight,
             preferredCompactWidth: preferredCompactWidth,
             preferredExpandedContentHeight: preferredExpandedContentHeight,
-            preferredExpandedTotalHeight: nowPageExpandedTotalHeight,
+            preferredExpandedTotalHeight: standardPageExpandedTotalHeight,
             preferredExpandedContentWidth: preferredExpandedContentWidth,
             minimumExpandedContentHeight: minimumExpandedContentHeight,
             expandedContentTopInset: minimalContentAspectRatio != nil
@@ -642,12 +642,16 @@ public struct IslandRootView: View {
         )
     }
 
-    /// 此刻页整窗总高固定为 168（标签栏 32 + 卡片画布 136），隐藏态高度不必参与推算。
-    private var nowPageExpandedTotalHeight: CGFloat? {
-        if selectedExpandedTab == .now, minimalContentHeight == nil {
-            return IslandLayoutToken.expandedNowPageTotalHeight
+    /// 此刻页与标准展开页共用整窗总高，隐藏态高度变化时不改变页间对齐。
+    private var standardPageExpandedTotalHeight: CGFloat? {
+        switch selectedExpandedTab {
+        case .now, .clipboard:
+            return minimalContentHeight == nil
+                ? IslandLayoutToken.expandedStandardPageTotalHeight
+                : nil
+        default:
+            return nil
         }
-        return nil
     }
 
     /// 隐藏态与灵动态共用的岛体高度：隐藏态的用户高度值同样决定灵动态岛高。
