@@ -427,7 +427,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 switch phase {
                 case .downloading(let progress):
                     self.updateToast.showProgress(
-                        self.downloadStatusText(progress),
+                        self.appLanguageSettings.localizedString("menu.update.downloading"),
                         progress: progress,
                         near: self.statusItem?.button?.window?.frame
                     )
@@ -744,10 +744,23 @@ extension AppDelegate: NSMenuDelegate {
 }
 
 private final class UpdateToast {
+    private enum Layout {
+        static let inset: CGFloat = 14
+        static let progressWidth: CGFloat = 240
+        static let progressHeight: CGFloat = 68
+        static let messageWidth: CGFloat = 200
+        static let messageHeight: CGFloat = 40
+    }
+
     private var panel: NSPanel?
+    private var contentView: NSView?
     private var messageLabel: NSTextField?
+    private var percentLabel: NSTextField?
     private var progressIndicator: NSProgressIndicator?
     private var labelCenterYConstraint: NSLayoutConstraint?
+    private var labelTopConstraint: NSLayoutConstraint?
+    private var labelTrailingToContentConstraint: NSLayoutConstraint?
+    private var labelTrailingToPercentConstraint: NSLayoutConstraint?
     private var dismissWorkItem: DispatchWorkItem?
 
     func show(_ message: String, near anchorFrame: NSRect?) {
@@ -762,9 +775,12 @@ private final class UpdateToast {
         configure(showsProgress: true, near: anchorFrame)
         messageLabel?.stringValue = message
         if let progress {
+            let percent = Int((min(max(progress, 0), 1) * 100).rounded())
+            percentLabel?.stringValue = "\(percent)%"
             progressIndicator?.isIndeterminate = false
-            progressIndicator?.doubleValue = min(100, max(0, progress * 100))
+            progressIndicator?.doubleValue = Double(percent)
         } else {
+            percentLabel?.stringValue = ""
             progressIndicator?.isIndeterminate = true
         }
     }
@@ -773,7 +789,7 @@ private final class UpdateToast {
         let isNewPanel = panel == nil
         if isNewPanel {
             let panel = NSPanel(
-                contentRect: NSRect(x: 0, y: 0, width: 200, height: 40),
+                contentRect: NSRect(x: 0, y: 0, width: Layout.messageWidth, height: Layout.messageHeight),
                 styleMask: [.borderless, .nonactivatingPanel],
                 backing: .buffered,
                 defer: false
@@ -783,52 +799,94 @@ private final class UpdateToast {
             panel.backgroundColor = .clear
             panel.hasShadow = true
 
-            let effect = NSVisualEffectView(frame: panel.contentView?.bounds ?? .zero)
+            let content = NSView(frame: panel.contentView?.bounds ?? .zero)
+            content.autoresizingMask = [.width, .height]
+            panel.contentView = content
+
+            let effect = NSVisualEffectView()
             effect.material = .hudWindow
             effect.state = .active
             effect.wantsLayer = true
             effect.layer?.cornerRadius = 10
             effect.layer?.masksToBounds = true
-            panel.contentView = effect
+            effect.translatesAutoresizingMaskIntoConstraints = false
+            content.addSubview(effect)
 
             let label = NSTextField(labelWithString: "")
             label.font = NSFont.systemFont(ofSize: 12, weight: .medium)
             label.textColor = .labelColor
-            label.alignment = .center
+            label.lineBreakMode = .byTruncatingTail
+            label.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
             label.translatesAutoresizingMaskIntoConstraints = false
-            effect.addSubview(label)
+            content.addSubview(label)
+
+            let percent = NSTextField(labelWithString: "")
+            percent.font = NSFont.monospacedDigitSystemFont(ofSize: 12, weight: .semibold)
+            percent.textColor = .secondaryLabelColor
+            percent.alignment = .right
+            percent.setContentHuggingPriority(.required, for: .horizontal)
+            percent.translatesAutoresizingMaskIntoConstraints = false
+            content.addSubview(percent)
 
             let indicator = NSProgressIndicator()
             indicator.style = .bar
             indicator.controlSize = .small
-            indicator.isBezeled = false
             indicator.minValue = 0
             indicator.maxValue = 100
             indicator.translatesAutoresizingMaskIntoConstraints = false
-            effect.addSubview(indicator)
+            content.addSubview(indicator)
 
+            let labelCenterY = label.centerYAnchor.constraint(equalTo: content.centerYAnchor)
+            let labelTop = label.topAnchor.constraint(
+                equalTo: content.topAnchor,
+                constant: Layout.inset
+            )
+            let labelTrailingToContent = label.trailingAnchor.constraint(
+                lessThanOrEqualTo: content.trailingAnchor,
+                constant: -Layout.inset
+            )
+            let labelTrailingToPercent = label.trailingAnchor.constraint(
+                lessThanOrEqualTo: percent.leadingAnchor,
+                constant: -8
+            )
             NSLayoutConstraint.activate([
-                label.centerXAnchor.constraint(equalTo: effect.centerXAnchor),
-                label.leadingAnchor.constraint(greaterThanOrEqualTo: effect.leadingAnchor, constant: 12),
-                label.trailingAnchor.constraint(lessThanOrEqualTo: effect.trailingAnchor, constant: -12),
-                indicator.leadingAnchor.constraint(equalTo: effect.leadingAnchor, constant: 16),
-                indicator.trailingAnchor.constraint(equalTo: effect.trailingAnchor, constant: -16),
-                indicator.bottomAnchor.constraint(equalTo: effect.bottomAnchor, constant: -14),
+                effect.leadingAnchor.constraint(equalTo: content.leadingAnchor),
+                effect.trailingAnchor.constraint(equalTo: content.trailingAnchor),
+                effect.topAnchor.constraint(equalTo: content.topAnchor),
+                effect.bottomAnchor.constraint(equalTo: content.bottomAnchor),
+                label.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: Layout.inset),
+                percent.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -Layout.inset),
+                percent.centerYAnchor.constraint(equalTo: label.centerYAnchor),
+                indicator.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: Layout.inset),
+                indicator.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -Layout.inset),
+                indicator.bottomAnchor.constraint(equalTo: content.bottomAnchor, constant: -Layout.inset),
                 indicator.heightAnchor.constraint(equalToConstant: 4),
             ])
-            labelCenterYConstraint = label.centerYAnchor.constraint(equalTo: effect.centerYAnchor)
-            labelCenterYConstraint?.isActive = true
 
             self.panel = panel
+            self.contentView = content
             self.messageLabel = label
+            self.percentLabel = percent
             self.progressIndicator = indicator
+            self.labelCenterYConstraint = labelCenterY
+            self.labelTopConstraint = labelTop
+            self.labelTrailingToContentConstraint = labelTrailingToContent
+            self.labelTrailingToPercentConstraint = labelTrailingToPercent
         }
 
         guard let panel else { return }
-        let size = NSSize(width: showsProgress ? 220 : 200, height: showsProgress ? 62 : 40)
+        let size = NSSize(
+            width: showsProgress ? Layout.progressWidth : Layout.messageWidth,
+            height: showsProgress ? Layout.progressHeight : Layout.messageHeight
+        )
         panel.setContentSize(size)
+        labelCenterYConstraint?.isActive = !showsProgress
+        labelTopConstraint?.isActive = showsProgress
+        labelTrailingToContentConstraint?.isActive = !showsProgress
+        labelTrailingToPercentConstraint?.isActive = showsProgress
+        percentLabel?.isHidden = !showsProgress
         progressIndicator?.isHidden = !showsProgress
-        labelCenterYConstraint?.constant = showsProgress ? 10 : 0
+        contentView?.layoutSubtreeIfNeeded()
 
         if let frame = anchorFrame {
             panel.setFrameOrigin(NSPoint(
@@ -863,9 +921,14 @@ private final class UpdateToast {
                 panel.orderOut(nil)
             }
             self?.panel = nil
+            self?.contentView = nil
             self?.messageLabel = nil
+            self?.percentLabel = nil
             self?.progressIndicator = nil
             self?.labelCenterYConstraint = nil
+            self?.labelTopConstraint = nil
+            self?.labelTrailingToContentConstraint = nil
+            self?.labelTrailingToPercentConstraint = nil
         }
         dismissWorkItem = workItem
         DispatchQueue.main.asyncAfter(deadline: .now() + 3, execute: workItem)
