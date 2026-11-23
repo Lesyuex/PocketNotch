@@ -30,6 +30,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private lazy var appThemeSettings = AppThemeSettings()
     private lazy var menuBarSettings = MenuBarSettings()
     private lazy var appUpdateChecker = AppUpdateChecker()
+    private lazy var appUpdater = AppUpdater()
     private lazy var launchAtLoginSettings = LaunchAtLoginSettings()
     private lazy var notchDisplaySettings = NotchDisplaySettings()
     private lazy var notchViewModel = NotchViewModel(
@@ -64,6 +65,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var updateMenuItem: NSMenuItem?
     private var updateRowView: UpdateRowView?
     private var updateCancellable: AnyCancellable?
+    private var updaterCancellable: AnyCancellable?
     private var isExplicitlyQuitting = false
     private var activityFeedCancellable: AnyCancellable?
     private var agentDisplayCancellable: AnyCancellable?
@@ -378,8 +380,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let titleWidth = ceil((title as NSString).size(
             withAttributes: [.font: NSFont.menuFont(ofSize: 0)]
         ).width)
+        let statusWidth = ["menu.update.available", "menu.update.downloading",
+                           "menu.update.verifying", "menu.update.installing",
+                           "menu.update.installed", "menu.update.failed"]
+            .map { appLanguageSettings.localizedString($0) }
+            .map { ceil(($0 as NSString).size(
+                withAttributes: [.font: NSFont.menuFont(ofSize: 0)]
+            ).width) }
+            .max() ?? 0
         let rowHeight = standardMenuRowHeight()
-        let rowWidth = max(menu.size.width, 14 + titleWidth + 16 + 8 + 12)
+        let rowWidth = max(menu.size.width, 14 + max(titleWidth, statusWidth) + 16 + 8 + 12)
         let rowView = UpdateRowView(
             frame: NSRect(x: 0, y: 0, width: rowWidth, height: rowHeight)
         )
@@ -396,11 +406,37 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .sink { [weak self] _ in
                 self?.applyUpdateState()
             }
+        updaterCancellable = appUpdater.$phase
+            .receive(on: RunLoop.main)
+            .sink { [weak self] phase in
+                guard let self else { return }
+                self.applyUpdateState()
+                if case .installed = phase {
+                    self.relaunchAfterUpdate()
+                }
+            }
         applyUpdateState()
     }
 
     private func applyUpdateState() {
-        updateRowView?.isUpdateAvailable = appUpdateChecker.availableUpdate != nil
+        guard let row = updateRowView else { return }
+        row.isUpdateAvailable = appUpdateChecker.availableUpdate != nil
+        switch appUpdater.phase {
+        case .idle:
+            row.statusText = appUpdateChecker.availableUpdate == nil
+                ? nil
+                : appLanguageSettings.localizedString("menu.update.available")
+        case .downloading:
+            row.statusText = appLanguageSettings.localizedString("menu.update.downloading")
+        case .verifying:
+            row.statusText = appLanguageSettings.localizedString("menu.update.verifying")
+        case .installing:
+            row.statusText = appLanguageSettings.localizedString("menu.update.installing")
+        case .installed:
+            row.statusText = appLanguageSettings.localizedString("menu.update.installed")
+        case .failed:
+            row.statusText = appLanguageSettings.localizedString("menu.update.failed")
+        }
     }
 
     private func standardMenuRowHeight() -> CGFloat {
@@ -413,10 +449,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func openUpdatePage() {
-        let url = appUpdateChecker.availableUpdate?.releaseURL
-            ?? AppUpdateChecker.releasesPageURL
-        NSWorkspace.shared.open(url)
+        if appUpdater.isBusy { return }
+        if case .failed = appUpdater.phase { appUpdater.reset() }
+
+        if let release = appUpdateChecker.availableUpdate, release.dmgAsset != nil {
+            appUpdater.update(to: release)
+        } else {
+            let url = appUpdateChecker.availableUpdate?.releaseURL
+                ?? AppUpdateChecker.releasesPageURL
+            NSWorkspace.shared.open(url)
+        }
         appUpdateChecker.checkForUpdatesIfNeeded(force: true)
+    }
+
+    private func relaunchAfterUpdate() {
+        _ = closeSettingsWindowIfNeeded()
+        isExplicitlyQuitting = true
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/open")
+        process.arguments = ["-n", Bundle.main.bundleURL.path]
+        try? process.run()
+        NSApp.terminate(nil)
     }
 
 
@@ -613,7 +666,11 @@ extension AppDelegate: NSMenuDelegate {
 
 private final class UpdateRowView: NSView {
     var title: String = "" {
-        didSet { titleLabel.stringValue = title }
+        didSet { refreshTitle() }
+    }
+
+    var statusText: String? {
+        didSet { refreshTitle() }
     }
 
     var isUpdateAvailable = false {
@@ -656,6 +713,10 @@ private final class UpdateRowView: NSView {
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    private func refreshTitle() {
+        titleLabel.stringValue = statusText ?? title
     }
 
     override func hitTest(_ point: NSPoint) -> NSView? {

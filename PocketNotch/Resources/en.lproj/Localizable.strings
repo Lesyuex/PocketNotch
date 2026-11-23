@@ -10,6 +10,12 @@
 "systemStats.title" = "System";
 "menu.settings" = "Settings";
 "menu.update" = "Update";
+"menu.update.available" = "Update available";
+"menu.update.downloading" = "Downloading...";
+"menu.update.verifying" = "Verifying...";
+"menu.update.installing" = "Installing...";
+"menu.update.installed" = "Installed, restarting...";
+"menu.update.failed" = "Update failed";
 "settings.category.appearanceInteraction" = "Appearance & Interaction";
 "settings.category.dynamicServices" = "Dynamic Services";
 "settings.category.components" = "Components";

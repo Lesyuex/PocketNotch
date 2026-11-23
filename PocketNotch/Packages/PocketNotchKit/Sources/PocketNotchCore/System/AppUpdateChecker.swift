@@ -1,18 +1,42 @@
+import AppKit
 import Combine
+import CryptoKit
 import Foundation
 import PocketNotchShared
+
+public struct AppUpdateAsset: Equatable, Sendable {
+    public let name: String
+    public let downloadURL: URL
+    public let digest: String?
+
+    public init(name: String, downloadURL: URL, digest: String?) {
+        self.name = name
+        self.downloadURL = downloadURL
+        self.digest = digest
+    }
+}
 
 public struct AppUpdateRelease: Equatable, Sendable {
     public let tagName: String
     public let version: String
     public let name: String?
     public let releaseURL: URL
+    public let dmgAsset: AppUpdateAsset?
+    public let checksumAsset: AppUpdateAsset?
 
-    public init(tagName: String, name: String?, releaseURL: URL) {
+    public init(
+        tagName: String,
+        name: String?,
+        releaseURL: URL,
+        dmgAsset: AppUpdateAsset? = nil,
+        checksumAsset: AppUpdateAsset? = nil
+    ) {
         self.tagName = tagName
         self.version = AppVersionComparator.normalizedVersion(tagName)
         self.name = name
         self.releaseURL = releaseURL
+        self.dmgAsset = dmgAsset
+        self.checksumAsset = checksumAsset
     }
 }
 
@@ -54,15 +78,37 @@ public enum AppVersionComparator {
     }
 }
 
+struct GitHubReleaseAsset: Decodable {
+    let name: String
+    let browserDownloadURL: URL
+    let digest: String?
+
+    enum CodingKeys: String, CodingKey {
+        case name
+        case browserDownloadURL = "browser_download_url"
+        case digest
+    }
+}
+
 struct GitHubLatestRelease: Decodable {
     let tagName: String
     let name: String?
     let htmlURL: URL
+    let assets: [GitHubReleaseAsset]
 
     enum CodingKeys: String, CodingKey {
         case tagName = "tag_name"
         case name
         case htmlURL = "html_url"
+        case assets
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        tagName = try container.decode(String.self, forKey: .tagName)
+        name = try container.decodeIfPresent(String.self, forKey: .name)
+        htmlURL = try container.decode(URL.self, forKey: .htmlURL)
+        assets = try container.decodeIfPresent([GitHubReleaseAsset].self, forKey: .assets) ?? []
     }
 }
 
@@ -138,10 +184,22 @@ public final class AppUpdateChecker: ObservableObject {
             let release = try JSONDecoder().decode(GitHubLatestRelease.self, from: data)
             lastCheckDate = Date()
 
+            let dmgAsset = release.assets.first {
+                $0.name.hasSuffix(".dmg") && !$0.name.contains("-universal")
+            } ?? release.assets.first { $0.name.hasSuffix(".dmg") }
+            let checksumAsset = dmgAsset.flatMap { dmg in
+                release.assets.first { $0.name == dmg.name + ".sha256" }
+            }
             let update = AppUpdateRelease(
                 tagName: release.tagName,
                 name: release.name,
-                releaseURL: release.htmlURL
+                releaseURL: release.htmlURL,
+                dmgAsset: dmgAsset.map {
+                    AppUpdateAsset(name: $0.name, downloadURL: $0.browserDownloadURL, digest: $0.digest)
+                },
+                checksumAsset: checksumAsset.map {
+                    AppUpdateAsset(name: $0.name, downloadURL: $0.browserDownloadURL, digest: $0.digest)
+                }
             )
             let currentVersion = currentVersionProvider() ?? ""
             if AppVersionComparator.isNewer(update.version, than: currentVersion) {
@@ -157,5 +215,167 @@ public final class AppUpdateChecker: ObservableObject {
                 "Update check failed: \(error.localizedDescription, privacy: .public)"
             )
         }
+    }
+}
+
+public enum AppUpdaterPhase: Equatable {
+    case idle
+    case downloading
+    case verifying
+    case installing
+    case installed
+    case failed(String)
+}
+
+@MainActor
+public final class AppUpdater: ObservableObject {
+    @Published public private(set) var phase: AppUpdaterPhase = .idle
+
+    private let session: URLSession
+    private let fileManager: FileManager
+    private let applicationURL: URL
+    private var updateTask: Task<Void, Never>?
+
+    public init(
+        session: URLSession = .shared,
+        fileManager: FileManager = .default,
+        applicationURL: URL? = nil
+    ) {
+        self.session = session
+        self.fileManager = fileManager
+        self.applicationURL = applicationURL ?? Bundle.main.bundleURL
+    }
+
+    deinit {
+        updateTask?.cancel()
+    }
+
+    public var isBusy: Bool {
+        switch phase {
+        case .downloading, .verifying, .installing, .installed:
+            true
+        case .idle, .failed:
+            false
+        }
+    }
+
+    public func update(to release: AppUpdateRelease) {
+        guard !isBusy, let asset = release.dmgAsset else { return }
+        updateTask?.cancel()
+        updateTask = Task { [weak self] in
+            guard let self else { return }
+            await self.performUpdate(release: release, asset: asset)
+            self.updateTask = nil
+        }
+    }
+
+    public func reset() {
+        updateTask?.cancel()
+        updateTask = nil
+        phase = .idle
+    }
+
+    private func performUpdate(release: AppUpdateRelease, asset: AppUpdateAsset) async {
+        let workspace = fileManager.temporaryDirectory
+            .appendingPathComponent("PocketNotchUpdate-\(UUID().uuidString)", isDirectory: true)
+        do {
+            try fileManager.createDirectory(at: workspace, withIntermediateDirectories: true)
+            defer { try? fileManager.removeItem(at: workspace) }
+
+            phase = .downloading
+            let (downloadedDMG, _) = try await session.download(from: asset.downloadURL)
+            let dmgURL = workspace.appendingPathComponent(asset.name)
+            try fileManager.copyItem(at: downloadedDMG, to: dmgURL)
+
+            var expectedDigest = asset.digest?
+                .replacingOccurrences(of: "sha256:", with: "")
+                .lowercased()
+            if let checksum = release.checksumAsset {
+                let (downloadedChecksum, _) = try await session.download(from: checksum.downloadURL)
+                let text = try String(contentsOf: downloadedChecksum, encoding: .utf8)
+                expectedDigest = text.split(whereSeparator: \.isWhitespace).first.map(String.init)?.lowercased()
+            }
+            guard let expectedDigest else { throw UpdateError.missingChecksum }
+
+            phase = .verifying
+            let digest = SHA256.hash(data: try Data(contentsOf: dmgURL))
+                .map { String(format: "%02x", $0) }
+                .joined()
+            guard digest == expectedDigest else { throw UpdateError.checksumMismatch }
+
+            phase = .installing
+            let mountPoint = workspace.appendingPathComponent("Volume", isDirectory: true)
+            try fileManager.createDirectory(at: mountPoint, withIntermediateDirectories: true)
+            try run("/usr/bin/hdiutil", [
+                "attach", "-nobrowse", "-noautoopen", "-mountpoint", mountPoint.path, dmgURL.path
+            ])
+            defer { _ = try? run("/usr/bin/hdiutil", ["detach", mountPoint.path]) }
+
+            let packagedApp = mountPoint.appendingPathComponent("PocketNotch.app")
+            guard fileManager.fileExists(atPath: packagedApp.path) else {
+                throw UpdateError.appNotFound
+            }
+
+            let backupURL = applicationURL.deletingLastPathComponent()
+                .appendingPathComponent("PocketNotch.previous-\(UUID().uuidString).app")
+            if fileManager.fileExists(atPath: applicationURL.path) {
+                try fileManager.moveItem(at: applicationURL, to: backupURL)
+            }
+            do {
+                try run("/usr/bin/ditto", [packagedApp.path, applicationURL.path])
+                _ = try? run("/usr/bin/xattr", ["-dr", "com.apple.quarantine", applicationURL.path])
+            } catch {
+                if fileManager.fileExists(atPath: backupURL.path) {
+                    try? fileManager.removeItem(at: applicationURL)
+                    try? fileManager.moveItem(at: backupURL, to: applicationURL)
+                }
+                throw error
+            }
+            try? fileManager.removeItem(at: backupURL)
+
+            phase = .installed
+            PocketNotchLog.core.info("Update installed: \(release.version, privacy: .public)")
+        } catch {
+            let message = error.localizedDescription
+            phase = .failed(message)
+            PocketNotchLog.core.error("Update failed: \(message, privacy: .public)")
+        }
+    }
+
+    private enum UpdateError: LocalizedError {
+        case missingChecksum
+        case checksumMismatch
+        case appNotFound
+        case commandFailed(String)
+
+        var errorDescription: String? {
+            switch self {
+            case .missingChecksum:
+                "校验信息缺失"
+            case .checksumMismatch:
+                "校验失败，下载文件可能已损坏"
+            case .appNotFound:
+                "更新包中未找到应用"
+            case .commandFailed(let message):
+                "系统命令执行失败：\(message)"
+            }
+        }
+    }
+
+    @discardableResult
+    private func run(_ executable: String, _ arguments: [String]) throws -> String {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: executable)
+        process.arguments = arguments
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = pipe
+        try process.run()
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        process.waitUntilExit()
+        guard process.terminationStatus == 0 else {
+            throw UpdateError.commandFailed(String(data: data, encoding: .utf8) ?? executable)
+        }
+        return String(data: data, encoding: .utf8) ?? ""
     }
 }

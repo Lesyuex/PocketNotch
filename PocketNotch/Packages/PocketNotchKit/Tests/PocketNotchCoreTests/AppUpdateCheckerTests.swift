@@ -58,4 +58,31 @@ final class AppUpdateCheckerTests: XCTestCase {
             "https://github.com/Lesyuex/PocketNotch/releases/tag/v1.2.3"
         )
     }
+
+    func testGitHubReleaseAssetsDecoding() throws {
+        let json = """
+        {
+          "tag_name": "v1.2.3",
+          "name": "PocketNotch 1.2.3",
+          "html_url": "https://github.com/Lesyuex/PocketNotch/releases/tag/v1.2.3",
+          "assets": [
+            {
+              "name": "PocketNotch-1.2.3-1.dmg",
+              "browser_download_url": "https://github.com/Lesyuex/PocketNotch/releases/download/v1.2.3/PocketNotch-1.2.3-1.dmg",
+              "digest": "sha256:abc123"
+            },
+            {
+              "name": "PocketNotch-1.2.3-1.dmg.sha256",
+              "browser_download_url": "https://github.com/Lesyuex/PocketNotch/releases/download/v1.2.3/PocketNotch-1.2.3-1.dmg.sha256"
+            }
+          ]
+        }
+        """.data(using: .utf8)!
+
+        let release = try JSONDecoder().decode(GitHubLatestRelease.self, from: json)
+        XCTAssertEqual(release.assets.count, 2)
+        XCTAssertEqual(release.assets[0].name, "PocketNotch-1.2.3-1.dmg")
+        XCTAssertEqual(release.assets[0].digest, "sha256:abc123")
+        XCTAssertEqual(release.assets[1].name, "PocketNotch-1.2.3-1.dmg.sha256")
+    }
 }

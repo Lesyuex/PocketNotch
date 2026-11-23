@@ -10,6 +10,12 @@
 "systemStats.title" = "系统状态";
 "menu.settings" = "设置";
 "menu.update" = "更新";
+"menu.update.available" = "有新版本";
+"menu.update.downloading" = "下载中...";
+"menu.update.verifying" = "校验中...";
+"menu.update.installing" = "安装中...";
+"menu.update.installed" = "安装完成，正在重启...";
+"menu.update.failed" = "更新失败";
 "settings.category.appearanceInteraction" = "外观与交互";
 "settings.category.dynamicServices" = "动态服务";
 "settings.category.components" = "组件";
