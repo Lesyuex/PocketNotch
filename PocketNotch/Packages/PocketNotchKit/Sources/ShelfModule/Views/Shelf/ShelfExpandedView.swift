@@ -55,7 +55,7 @@ struct ShelfExpandedView: View {
     }
 
     private var airDropZone: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 4) {
             ShelfAirDropIcon(size: 32)
                 .opacity(isAirDropTargeted ? 1 : 0.72)
 
@@ -72,7 +72,7 @@ struct ShelfExpandedView: View {
                 .foregroundStyle(.white.opacity(isAirDropTargeted ? 0.72 : 0.42))
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
-                .frame(height: 22)
+                .frame(height: 18)
 
             Button(action: airDropSelection) {
                 Label {
@@ -92,6 +92,7 @@ struct ShelfExpandedView: View {
             .buttonStyle(ShelfPasteButtonStyle())
             .disabled(selectedItems.isEmpty)
         }
+        .padding(8)
         .frame(width: ShelfDropLayout.airDropWidth)
         .frame(maxHeight: .infinity)
         .background {
@@ -135,7 +136,7 @@ struct ShelfExpandedView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .padding(.horizontal, 8)
+        .padding(8)
         .background {
             RoundedRectangle(cornerRadius: 7, style: .continuous)
                 .fill(.white.opacity(isTransferTargeted ? 0.08 : 0.025))
