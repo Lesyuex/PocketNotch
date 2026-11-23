@@ -13,6 +13,7 @@ public final class LockScreenMusicWidgetController {
     private let presenter = LockScreenMusicWidgetPresenter()
     private let screenLockController: ScreenLockController
     private var lockStateCancellable: AnyCancellable?
+    private var distributedObservers: [NSObjectProtocol] = []
     private var workspaceObservers: [NSObjectProtocol] = []
     private var screenObserver: NSObjectProtocol?
     private var mediaCancellable: AnyCancellable?
@@ -21,6 +22,7 @@ public final class LockScreenMusicWidgetController {
     private var isStarted = false
     private var isScreenLocked = false
     private var isScreenAwake = true
+    private var isCredentialUIVisible = false
     private var targetDisplayIdentifier: String?
 
     init(
@@ -47,6 +49,10 @@ public final class LockScreenMusicWidgetController {
 
         lockStateCancellable = nil
 
+        let distributedCenter = DistributedNotificationCenter.default()
+        distributedObservers.forEach { distributedCenter.removeObserver($0) }
+        distributedObservers.removeAll()
+
         let workspaceCenter = NSWorkspace.shared.notificationCenter
         workspaceObservers.forEach { workspaceCenter.removeObserver($0) }
         workspaceObservers.removeAll()
@@ -59,10 +65,30 @@ public final class LockScreenMusicWidgetController {
         mediaCancellable = nil
         spaceReassertTask?.cancel()
         spaceReassertTask = nil
+        isCredentialUIVisible = false
         hide(immediately: true)
     }
 
     private func observeLockState() {
+        let distributedCenter = DistributedNotificationCenter.default()
+        let distributedNames: [Notification.Name] = [
+            Self.screenLockUIIsShownNotification,
+            Self.screenLockUIIsHiddenNotification,
+            Self.screenSaverDidStartNotification,
+            Self.screenSaverDidStopNotification,
+        ]
+        distributedObservers = distributedNames.map { name in
+            distributedCenter.addObserver(
+                forName: name,
+                object: nil,
+                queue: .main
+            ) { [weak self] notification in
+                MainActor.assumeIsolated {
+                    self?.handleDistributedNotification(notification.name)
+                }
+            }
+        }
+
         lockStateCancellable = screenLockController.$phase
             .removeDuplicates()
             .sink { [weak self] phase in
@@ -72,6 +98,7 @@ public final class LockScreenMusicWidgetController {
                     if self.isScreenLocked {
                         self.updateVisibility()
                     } else {
+                        self.isCredentialUIVisible = false
                         self.hide(immediately: true)
                     }
                 }
@@ -120,17 +147,40 @@ public final class LockScreenMusicWidgetController {
         }
     }
 
+    private func handleDistributedNotification(_ name: Notification.Name) {
+        switch name {
+        case Self.screenLockUIIsShownNotification:
+            isCredentialUIVisible = true
+            updateVisibility()
+        case Self.screenLockUIIsHiddenNotification:
+            isCredentialUIVisible = false
+            if isScreenLocked {
+                hide(immediately: true)
+            }
+        case Self.screenSaverDidStartNotification:
+            isCredentialUIVisible = false
+            hide(immediately: true)
+        case Self.screenSaverDidStopNotification:
+            break
+        default:
+            break
+        }
+    }
+
     private func handleWorkspaceNotification(_ name: NSNotification.Name) {
         switch name {
         case NSWorkspace.willSleepNotification, NSWorkspace.screensDidSleepNotification:
             isScreenAwake = false
+            isCredentialUIVisible = false
             hide(immediately: true)
         case NSWorkspace.didWakeNotification, NSWorkspace.screensDidWakeNotification:
             isScreenAwake = true
-            // 待机唤醒时缓存的锁屏相位可能早于系统会话状态更新，
-            // 展示前先核对一次，避免唤醒到桌面后组件滞留再延迟关闭。
+            // 休眠前的登录 UI 状态已失效；先立即收起，等系统重新显示
+            // 用户头像/密码界面（screenLockUIIsShown）再决定是否展示。
+            // 否则会话状态滞后时相位仍为 locked，组件会滞留到桌面并延迟销毁。
+            isCredentialUIVisible = false
+            hide(immediately: true)
             screenLockController.reconcileLockStateFromSession()
-            updateVisibility()
         default:
             break
         }
@@ -138,11 +188,12 @@ public final class LockScreenMusicWidgetController {
 
     private func updateVisibility() {
         PocketNotchLog.media.debug(
-            "Lock screen widget visibility: started=\(self.isStarted, privacy: .public) locked=\(self.isScreenLocked, privacy: .public) awake=\(self.isScreenAwake, privacy: .public) enabled=\(self.settings.isLockScreenMusicEnabled, privacy: .public) hasInfo=\(self.viewModel.info != nil, privacy: .public)"
+            "Lock screen widget visibility: started=\(self.isStarted, privacy: .public) locked=\(self.isScreenLocked, privacy: .public) awake=\(self.isScreenAwake, privacy: .public) credentialUI=\(self.isCredentialUIVisible, privacy: .public) enabled=\(self.settings.isLockScreenMusicEnabled, privacy: .public) hasInfo=\(self.viewModel.info != nil, privacy: .public)"
         )
         guard isStarted,
               isScreenLocked,
               isScreenAwake,
+              isCredentialUIVisible,
               settings.isLockScreenMusicEnabled,
               viewModel.info != nil else {
             hide()
@@ -162,6 +213,7 @@ public final class LockScreenMusicWidgetController {
         guard isStarted,
               isScreenLocked,
               isScreenAwake,
+              isCredentialUIVisible,
               settings.isLockScreenMusicEnabled,
               viewModel.info != nil else { return }
 
@@ -319,6 +371,11 @@ public final class LockScreenMusicWidgetController {
         .milliseconds(120), .milliseconds(300), .milliseconds(600),
         .milliseconds(1_000), .milliseconds(1_600), .milliseconds(2_200)
     ]
+
+    private static let screenLockUIIsShownNotification = Notification.Name("com.apple.screenLockUIIsShown")
+    private static let screenLockUIIsHiddenNotification = Notification.Name("com.apple.screenLockUIIsHidden")
+    private static let screenSaverDidStartNotification = Notification.Name("com.apple.screensaver.didstart")
+    private static let screenSaverDidStopNotification = Notification.Name("com.apple.screensaver.didstop")
 }
 
 @MainActor
