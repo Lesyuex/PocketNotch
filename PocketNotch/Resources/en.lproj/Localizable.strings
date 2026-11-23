@@ -11,6 +11,9 @@
 "menu.settings" = "Settings";
 "menu.update" = "Update";
 "menu.update.available" = "Update available";
+"menu.update.checking" = "Checking...";
+"menu.update.upToDate" = "Up to date";
+"menu.update.checkFailed" = "Check failed";
 "menu.update.downloading" = "Downloading...";
 "menu.update.verifying" = "Verifying...";
 "menu.update.installing" = "Installing...";

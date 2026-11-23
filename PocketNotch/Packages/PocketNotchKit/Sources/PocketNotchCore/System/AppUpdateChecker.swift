@@ -120,6 +120,7 @@ public final class AppUpdateChecker: ObservableObject {
 
     @Published public private(set) var availableUpdate: AppUpdateRelease?
     @Published public private(set) var isChecking = false
+    @Published public private(set) var lastCheckError: String?
 
     private let latestReleaseAPIURL: URL
     private let currentVersionProvider: () -> String?
@@ -164,8 +165,17 @@ public final class AppUpdateChecker: ObservableObject {
         }
     }
 
+    public func checkForUpdates() async {
+        if let checkTask {
+            await checkTask.value
+        } else {
+            await performCheck()
+        }
+    }
+
     private func performCheck() async {
         isChecking = true
+        lastCheckError = nil
         defer { isChecking = false }
 
         var request = URLRequest(url: latestReleaseAPIURL)
@@ -175,9 +185,11 @@ public final class AppUpdateChecker: ObservableObject {
 
         do {
             let (data, response) = try await session.data(for: request)
-            guard let httpResponse = response as? HTTPURLResponse,
-                  (200..<300).contains(httpResponse.statusCode) else {
-                PocketNotchLog.core.error("Update check failed: unexpected HTTP response")
+            let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
+            guard (200..<300).contains(statusCode) else {
+                let message = "unexpected HTTP response: \(statusCode)"
+                lastCheckError = message
+                PocketNotchLog.core.error("Update check failed: \(message, privacy: .public)")
                 return
             }
 
@@ -211,6 +223,7 @@ public final class AppUpdateChecker: ObservableObject {
                 availableUpdate = nil
             }
         } catch {
+            lastCheckError = error.localizedDescription
             PocketNotchLog.core.error(
                 "Update check failed: \(error.localizedDescription, privacy: .public)"
             )

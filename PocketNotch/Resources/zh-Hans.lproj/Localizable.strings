@@ -11,6 +11,9 @@
 "menu.settings" = "设置";
 "menu.update" = "更新";
 "menu.update.available" = "有新版本";
+"menu.update.checking" = "检查中...";
+"menu.update.upToDate" = "已是最新版本";
+"menu.update.checkFailed" = "检查失败";
 "menu.update.downloading" = "下载中...";
 "menu.update.verifying" = "校验中...";
 "menu.update.installing" = "安装中...";

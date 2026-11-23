@@ -66,6 +66,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var updateRowView: UpdateRowView?
     private var updateCancellable: AnyCancellable?
     private var updaterCancellable: AnyCancellable?
+    private var transientUpdateMessage: String?
+    private var transientMessageWorkItem: DispatchWorkItem?
+    private let updateToast = UpdateToast()
     private var isExplicitlyQuitting = false
     private var activityFeedCancellable: AnyCancellable?
     private var agentDisplayCancellable: AnyCancellable?
@@ -380,9 +383,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let titleWidth = ceil((title as NSString).size(
             withAttributes: [.font: NSFont.menuFont(ofSize: 0)]
         ).width)
-        let statusWidth = ["menu.update.available", "menu.update.downloading",
-                           "menu.update.verifying", "menu.update.installing",
-                           "menu.update.installed", "menu.update.failed"]
+        let statusWidth = ["menu.update.available", "menu.update.checking",
+                           "menu.update.upToDate", "menu.update.checkFailed",
+                           "menu.update.downloading", "menu.update.verifying",
+                           "menu.update.installing", "menu.update.installed",
+                           "menu.update.failed"]
             .map { appLanguageSettings.localizedString($0) }
             .map { ceil(($0 as NSString).size(
                 withAttributes: [.font: NSFont.menuFont(ofSize: 0)]
@@ -411,8 +416,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .sink { [weak self] phase in
                 guard let self else { return }
                 self.applyUpdateState()
-                if case .installed = phase {
+                switch phase {
+                case .failed:
+                    self.updateToast.show(
+                        self.appLanguageSettings.localizedString("menu.update.failed"),
+                        near: self.statusItem?.button?.window?.frame
+                    )
+                case .installed:
                     self.relaunchAfterUpdate()
+                default:
+                    break
                 }
             }
         applyUpdateState()
@@ -421,6 +434,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func applyUpdateState() {
         guard let row = updateRowView else { return }
         row.isUpdateAvailable = appUpdateChecker.availableUpdate != nil
+        if let message = transientUpdateMessage, case .idle = appUpdater.phase {
+            row.statusText = message
+            return
+        }
         switch appUpdater.phase {
         case .idle:
             row.statusText = appUpdateChecker.availableUpdate == nil
@@ -453,13 +470,45 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if case .failed = appUpdater.phase { appUpdater.reset() }
 
         if let release = appUpdateChecker.availableUpdate, release.dmgAsset != nil {
+            showTransientUpdateMessage(appLanguageSettings.localizedString("menu.update.downloading"))
             appUpdater.update(to: release)
-        } else {
-            let url = appUpdateChecker.availableUpdate?.releaseURL
-                ?? AppUpdateChecker.releasesPageURL
-            NSWorkspace.shared.open(url)
+            return
         }
-        appUpdateChecker.checkForUpdatesIfNeeded(force: true)
+
+        showTransientUpdateMessage(appLanguageSettings.localizedString("menu.update.checking"))
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            await self.appUpdateChecker.checkForUpdates()
+            if let release = self.appUpdateChecker.availableUpdate, release.dmgAsset != nil {
+                self.showTransientUpdateMessage(
+                    self.appLanguageSettings.localizedString("menu.update.downloading")
+                )
+                self.appUpdater.update(to: release)
+                return
+            }
+            if self.appUpdateChecker.lastCheckError != nil {
+                self.showTransientUpdateMessage(
+                    self.appLanguageSettings.localizedString("menu.update.checkFailed")
+                )
+            } else {
+                self.showTransientUpdateMessage(
+                    self.appLanguageSettings.localizedString("menu.update.upToDate")
+                )
+            }
+        }
+    }
+
+    private func showTransientUpdateMessage(_ message: String) {
+        transientMessageWorkItem?.cancel()
+        transientUpdateMessage = message
+        applyUpdateState()
+        updateToast.show(message, near: statusItem?.button?.window?.frame)
+        let workItem = DispatchWorkItem { [weak self] in
+            self?.transientUpdateMessage = nil
+            self?.applyUpdateState()
+        }
+        transientMessageWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4, execute: workItem)
     }
 
     private func relaunchAfterUpdate() {
@@ -661,6 +710,74 @@ extension AppDelegate: NSMenuDelegate {
 
     func menu(_ menu: NSMenu, willHighlight item: NSMenuItem?) {
         updateRowView?.isHighlighted = item === updateMenuItem
+    }
+}
+
+private final class UpdateToast {
+    private var panel: NSPanel?
+    private var dismissWorkItem: DispatchWorkItem?
+
+    func show(_ message: String, near anchorFrame: NSRect?) {
+        dismissWorkItem?.cancel()
+        panel?.orderOut(nil)
+
+        let panel = NSPanel(
+            contentRect: NSRect(x: 0, y: 0, width: 200, height: 40),
+            styleMask: [.borderless, .nonactivatingPanel],
+            backing: .buffered,
+            defer: false
+        )
+        panel.level = .floating
+        panel.isOpaque = false
+        panel.backgroundColor = .clear
+        panel.hasShadow = true
+
+        let effect = NSVisualEffectView(frame: panel.contentView?.bounds ?? .zero)
+        effect.material = .hudWindow
+        effect.state = .active
+        effect.wantsLayer = true
+        effect.layer?.cornerRadius = 10
+        effect.layer?.masksToBounds = true
+        panel.contentView = effect
+
+        let label = NSTextField(labelWithString: message)
+        label.font = NSFont.systemFont(ofSize: 12, weight: .medium)
+        label.textColor = .labelColor
+        label.alignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
+        effect.addSubview(label)
+        NSLayoutConstraint.activate([
+            label.centerXAnchor.constraint(equalTo: effect.centerXAnchor),
+            label.centerYAnchor.constraint(equalTo: effect.centerYAnchor),
+            label.leadingAnchor.constraint(greaterThanOrEqualTo: effect.leadingAnchor, constant: 12),
+            label.trailingAnchor.constraint(lessThanOrEqualTo: effect.trailingAnchor, constant: -12),
+        ])
+
+        if let frame = anchorFrame {
+            panel.setFrameOrigin(NSPoint(x: frame.midX - 100, y: frame.minY - 48))
+        } else {
+            panel.center()
+        }
+        panel.alphaValue = 0
+        panel.orderFrontRegardless()
+        NSAnimationContext.runAnimationGroup({ context in
+            context.duration = 0.15
+        }) {
+            panel.animator().alphaValue = 1
+        }
+
+        self.panel = panel
+        let workItem = DispatchWorkItem { [weak self] in
+            NSAnimationContext.runAnimationGroup { context in
+                context.duration = 0.2
+                panel.animator().alphaValue = 0
+            } completionHandler: {
+                panel.orderOut(nil)
+            }
+            self?.panel = nil
+        }
+        dismissWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3, execute: workItem)
     }
 }
 
