@@ -473,6 +473,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let now = Date()
         if let last = lastUpdateActionTime, now.timeIntervalSince(last) < 0.3 { return }
         lastUpdateActionTime = now
+        statusItem?.menu?.cancelTracking()
 
         if appUpdater.isBusy { return }
         if case .failed = appUpdater.phase { appUpdater.reset() }
@@ -510,7 +511,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         transientMessageWorkItem?.cancel()
         transientUpdateMessage = message
         applyUpdateState()
-        updateToast.show(message, near: statusItem?.button?.window?.frame)
+        let anchor = statusItem?.button?.window?.frame
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { [weak self] in
+            self?.updateToast.show(message, near: anchor)
+        }
         let workItem = DispatchWorkItem { [weak self] in
             self?.transientUpdateMessage = nil
             self?.applyUpdateState()
