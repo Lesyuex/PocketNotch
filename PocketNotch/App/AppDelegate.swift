@@ -69,6 +69,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var transientUpdateMessage: String?
     private var transientMessageWorkItem: DispatchWorkItem?
     private let updateToast = UpdateToast()
+    private var lastUpdateActionTime: Date?
     private var isExplicitlyQuitting = false
     private var activityFeedCancellable: AnyCancellable?
     private var agentDisplayCancellable: AnyCancellable?
@@ -399,6 +400,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             frame: NSRect(x: 0, y: 0, width: rowWidth, height: rowHeight)
         )
         rowView.title = title
+        rowView.onTap = { [weak self] in
+            self?.openUpdatePage()
+        }
         updateItem.view = rowView
         updateRowView = rowView
 
@@ -466,6 +470,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func openUpdatePage() {
+        let now = Date()
+        if let last = lastUpdateActionTime, now.timeIntervalSince(last) < 0.3 { return }
+        lastUpdateActionTime = now
+
         if appUpdater.isBusy { return }
         if case .failed = appUpdater.phase { appUpdater.reset() }
 
@@ -782,6 +790,8 @@ private final class UpdateToast {
 }
 
 private final class UpdateRowView: NSView {
+    var onTap: (() -> Void)?
+
     var title: String = "" {
         didSet { refreshTitle() }
     }
@@ -837,7 +847,12 @@ private final class UpdateRowView: NSView {
     }
 
     override func hitTest(_ point: NSPoint) -> NSView? {
-        nil
+        self
+    }
+
+    override func mouseUp(with event: NSEvent) {
+        super.mouseUp(with: event)
+        onTap?()
     }
 
     override func viewDidChangeEffectiveAppearance() {
