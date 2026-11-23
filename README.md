@@ -62,3 +62,8 @@ NOTARIZE_PROFILE="your-notary-profile" \
 ## 隐私说明
 
 音频可视化在本机处理音频，不录制、存储或上传音频。日历、提醒事项、蓝牙、位置等功能会在需要时请求 macOS 权限；不启用相应功能时无需授予相关权限。
+## 开源协议
+
+本项目基于 [GNU General Public License v3.0](LICENSE) 发布。
+
+PocketNotch 在设计与实现上参考了 [Atoll](https://github.com/Atoll-Project/Atoll) 与 [Boring Notch](https://github.com/TheBoringTeam/boring.notch) 等同类型开源项目，它们同样采用 GPL-3.0 协议。按照 GPL-3.0 的要求，任何对本项目的修改与再分发都必须继续以 GPL-3.0 协议开源，并提供完整的源代码。
